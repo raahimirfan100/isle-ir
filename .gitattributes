@@ -1,0 +1,23 @@
+# Normalize line endings — the team spans Linux, Windows (CUDA rig) and macOS.
+* text=auto eol=lf
+
+# Python and config files are always text.
+*.py    text eol=lf
+*.md    text eol=lf
+*.toml  text eol=lf
+*.json  text eol=lf
+*.txt   text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.cfg   text eol=lf
+*.sh    text eol=lf
+
+# Binary assets — never diff or convert.
+*.pdf     binary
+*.png     binary
+*.jpg     binary
+*.parquet binary
+*.npy     binary
+*.index   binary
+*.faiss   binary
+*.ipynb   text eol=lf

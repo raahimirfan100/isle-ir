@@ -1,0 +1,47 @@
+# ── Python ──────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# ── Data & model artifacts (shared via Google Drive, never committed) ───
+# See docs/SSOT.md §15 — corpus.parquet, embeddings.npy, FAISS/BM25 indexes.
+data/raw/*
+data/processed/*
+data/indexes/*
+!data/**/.gitkeep
+*.parquet
+*.npy
+*.index
+*.faiss
+evaluation/results/*
+!evaluation/results/.gitkeep
+
+# ── Secrets & credentials ───────────────────────────────────────────────
+.env
+.env.*
+kaggle.json
+*openalex*key*
+secrets.toml
+.streamlit/secrets.toml
+
+# ── Tooling / local config ──────────────────────────────────────────────
+.claude/settings.local.json
+.claude/worktrees/
+.claude/plans/
+
+# ── Editors & OS ────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
