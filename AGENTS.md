@@ -24,6 +24,7 @@ query → expansion → [ BM25 ‖ dense/FAISS ] → RRF → rerank
 
 | You need… | Read… |
 |---|---|
+| Current status — what is done, what to do next | `docs/PROGRESS.md` |
 | Roles, interface contracts, timeline, evaluation plan | `docs/SSOT.md` |
 | Phase-by-phase code, libraries, known pitfalls | `docs/IMPLEMENTATION.md` |
 | A ready-to-run task for a phase | `docs/agent-prompts/phase-N-*.md` |
