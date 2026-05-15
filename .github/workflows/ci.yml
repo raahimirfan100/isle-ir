@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, dev]
+
+jobs:
+  lint:
+    name: Lint & syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install tooling
+        run: pip install ruff
+
+      - name: Ruff lint
+        run: ruff check .
+
+      - name: Syntax check
+        run: python -m compileall -q src evaluation
+
+      - name: Package layout check
+        run: |
+          pip install -e . --no-deps
+          python -c "import app.config; print('config import OK')"
+
+  # TODO(team): add a `test` job running pytest once tests/ has real tests
+  #   (heavy ML deps will need caching — see requirements.txt install order).

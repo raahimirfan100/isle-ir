@@ -1,0 +1,21 @@
+# CODEOWNERS — GitHub auto-requests a review from the module owner on PRs.
+#
+# Only Raahim's GitHub handle is known. The commented lines below carry the
+# intended ownership (per docs/SSOT.md §2).
+# TODO(team): replace @ABUBAKAR and @MUJTABA with real GitHub usernames and
+#             uncomment their lines.
+
+/src/retrieval/faiss_index.py      @raahimirfan100
+/src/retrieval/reranker.py         @raahimirfan100
+/src/retrieval/pipeline.py         @raahimirfan100
+/src/topics/bertopic_model.py      @raahimirfan100
+/docs/                             @raahimirfan100
+
+# /src/ingestion/                   @MUJTABA
+# /src/graph/                       @MUJTABA
+# /src/app/                         @MUJTABA
+# /src/retrieval/bm25_index.py      @ABUBAKAR
+# /src/retrieval/rrf.py             @ABUBAKAR
+# /src/retrieval/query_expansion.py @ABUBAKAR
+# /src/topics/nmf_model.py          @ABUBAKAR
+# /evaluation/                      @ABUBAKAR
