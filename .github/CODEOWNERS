@@ -1,21 +1,21 @@
 # CODEOWNERS — GitHub auto-requests a review from the module owner on PRs.
-#
-# Only Raahim's GitHub handle is known. The commented lines below carry the
-# intended ownership (per docs/SSOT.md §2).
-# TODO(team): replace @ABUBAKAR and @MUJTABA with real GitHub usernames and
-#             uncomment their lines.
+# Ownership follows docs/SSOT.md §2. Later patterns override earlier ones.
 
-/src/retrieval/faiss_index.py      @raahimirfan100
-/src/retrieval/reranker.py         @raahimirfan100
-/src/retrieval/pipeline.py         @raahimirfan100
-/src/topics/bertopic_model.py      @raahimirfan100
-/docs/                             @raahimirfan100
+# Mujtaba — data pipeline, knowledge graph, frontend
+/src/ingestion/                   @Mujtaba-Kamran
+/src/graph/                       @Mujtaba-Kamran
+/src/app/                         @Mujtaba-Kamran
 
-# /src/ingestion/                   @MUJTABA
-# /src/graph/                       @MUJTABA
-# /src/app/                         @MUJTABA
-# /src/retrieval/bm25_index.py      @ABUBAKAR
-# /src/retrieval/rrf.py             @ABUBAKAR
-# /src/retrieval/query_expansion.py @ABUBAKAR
-# /src/topics/nmf_model.py          @ABUBAKAR
-# /evaluation/                      @ABUBAKAR
+# Abubakar — BM25, RRF, NMF, query expansion, evaluation
+/src/retrieval/bm25_index.py      @abubakar-ahmed-dev
+/src/retrieval/rrf.py             @abubakar-ahmed-dev
+/src/retrieval/query_expansion.py @abubakar-ahmed-dev
+/src/topics/nmf_model.py          @abubakar-ahmed-dev
+/evaluation/                      @abubakar-ahmed-dev
+
+# Raahim — dense retrieval, reranker, pipeline, BERTopic, integration
+/src/retrieval/faiss_index.py     @raahimirfan100
+/src/retrieval/reranker.py        @raahimirfan100
+/src/retrieval/pipeline.py        @raahimirfan100
+/src/topics/bertopic_model.py     @raahimirfan100
+/docs/                            @raahimirfan100
