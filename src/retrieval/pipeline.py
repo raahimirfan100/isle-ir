@@ -21,8 +21,8 @@ if TYPE_CHECKING:
 
 def full_retrieval_pipeline(
     query: str,
-    bm25_index: "BM25Index",
-    faiss_index: "FAISSIndex",
+    bm25_index: BM25Index,
+    faiss_index: FAISSIndex,
     papers_lookup: dict[str, dict],
     expand_query: bool = True,
     rerank: bool = True,
