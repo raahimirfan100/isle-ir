@@ -37,7 +37,7 @@ streamlit-agraph
 
 # ── Frontend ─────────────────────────────────────────────────────────────
 streamlit>=1.35
-plotly>=5.20
+plotly>=6.7.0
 
 # ── Evaluation ───────────────────────────────────────────────────────────
 gensim>=4.3             # topic coherence (c_v, NPMI)
