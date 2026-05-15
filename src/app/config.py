@@ -1,0 +1,71 @@
+"""Shared project configuration — the single source of truth for paths,
+model names and hyperparameters.
+
+Owner:  All (SSOT §5)
+STATUS: core
+
+Every module imports constants from here. Do NOT hardcode a path, model name
+or hyperparameter anywhere else — that is the most common cause of
+"works on my machine" integration failures (SSOT §15).
+"""
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+# ── Paths ────────────────────────────────────────────────────────────────
+# ROOT resolves to the repo root: src/app/config.py → src/app → src → root.
+ROOT = Path(__file__).resolve().parent.parent.parent
+
+DATA_RAW = ROOT / "data" / "raw"
+DATA_PROCESSED = ROOT / "data" / "processed"
+CORPUS_PATH = DATA_PROCESSED / "corpus.parquet"
+BM25_DIR = ROOT / "data" / "indexes" / "bm25"
+FAISS_DIR = ROOT / "data" / "indexes" / "faiss"
+EVAL_RESULTS_DIR = ROOT / "evaluation" / "results"
+
+# ── Embedding model — TEAM DECISION (lock in Phase 0) ────────────────────
+# The two planning docs disagree (see docs/IMPLEMENTATION.md header):
+#   Option A — sentence-transformers/all-MiniLM-L6-v2  · 384-dim · simple,
+#              fast, no extra deps. Matches docs/IMPLEMENTATION.md code.
+#   Option B — allenai/specter2_base                   · 768-dim · scientific
+#              text, citation-aware. Matches docs/SSOT.md Contract C / §10;
+#              needs the `adapters` library.
+# This file is the ONLY knob. Default below is Option A (core path). If the
+# team picks B, change both lines AND update whichever doc still disagrees.
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+EMBEDDING_DIM = 384
+
+# Cross-encoder reranker (enhancement — SSOT §10).
+RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+
+# ── BM25 (ISLE paper §3.2.1) ─────────────────────────────────────────────
+BM25_K1 = 1.5
+BM25_B = 0.75
+
+# ── Retrieval ────────────────────────────────────────────────────────────
+TOP_K_EACH = 100   # results BM25 and FAISS each return before fusion
+RRF_K = 60         # Reciprocal Rank Fusion constant (Cormack et al. 2009)
+RRF_TOP_N = 50     # results kept after fusion
+RERANK_TOP_K = 20  # cross-encoder final output count
+
+# ── FAISS IVFFlat ────────────────────────────────────────────────────────
+FAISS_NLIST = 1024
+FAISS_NPROBE = 64
+
+# ── BERTopic ─────────────────────────────────────────────────────────────
+BERTOPIC_MIN_CLUSTER = 15
+BERTOPIC_N_COMPONENTS = 5   # UMAP output dimensions
+BERTOPIC_N_NEIGHBORS = 15
+
+# ── NMF ──────────────────────────────────────────────────────────────────
+NMF_K_RANGE = range(5, 21)
+
+# ── OpenAlex — free API key required since Feb 2026 ──────────────────────
+# Keep real credentials OUT of git. Set them in the environment (or a local
+# .env / .claude/settings.local.json, both gitignored). Register a free key
+# at https://openalex.org/api-key.
+# TODO(team, phase-0): set OPENALEX_EMAIL / OPENALEX_API_KEY in your env.
+OA_EMAIL = os.environ.get("OPENALEX_EMAIL", "your-team-email@nu.edu.pk")
+OA_API_KEY = os.environ.get("OPENALEX_API_KEY", "")
