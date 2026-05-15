@@ -1,0 +1,22 @@
+[
+  {"id": 1,  "query": "transformer self-attention mechanism NLP",           "type": "specific_method", "relevant": []},
+  {"id": 2,  "query": "graph neural network node classification",           "type": "combined_topic",  "relevant": []},
+  {"id": 3,  "query": "large language model instruction fine-tuning",       "type": "broad_topic",     "relevant": []},
+  {"id": 4,  "query": "BERT pretraining masked language model",             "type": "named_model",     "relevant": []},
+  {"id": 5,  "query": "reinforcement learning policy gradient optimization","type": "specific_method", "relevant": []},
+  {"id": 6,  "query": "federated learning privacy data",                    "type": "combined_topic",  "relevant": []},
+  {"id": 7,  "query": "neural machine translation low resource languages",  "type": "combined_topic",  "relevant": []},
+  {"id": 8,  "query": "image segmentation semantic pixel labeling",         "type": "combined_topic",  "relevant": []},
+  {"id": 9,  "query": "knowledge graph embedding link prediction",          "type": "combined_topic",  "relevant": []},
+  {"id": 10, "query": "contrastive learning self-supervised visual",        "type": "specific_method", "relevant": []},
+  {"id": 11, "query": "adversarial attack robustness defense",              "type": "combined_topic",  "relevant": []},
+  {"id": 12, "query": "object detection YOLO real-time speed",              "type": "named_model",     "relevant": []},
+  {"id": 13, "query": "question answering reading comprehension extraction","type": "task",            "relevant": []},
+  {"id": 14, "query": "generative adversarial network image synthesis",     "type": "specific_method", "relevant": []},
+  {"id": 15, "query": "text classification sentiment analysis BERT",        "type": "task",            "relevant": []},
+  {"id": 16, "query": "speech recognition end-to-end sequence model",       "type": "combined_topic",  "relevant": []},
+  {"id": 17, "query": "recommendation system collaborative filtering",      "type": "combined_topic",  "relevant": []},
+  {"id": 18, "query": "differential privacy noise mechanism deep learning", "type": "combined_topic",  "relevant": []},
+  {"id": 19, "query": "meta-learning few-shot generalization",              "type": "specific_method", "relevant": []},
+  {"id": 20, "query": "vision transformer image recognition ViT",           "type": "named_model",     "relevant": []}
+]
