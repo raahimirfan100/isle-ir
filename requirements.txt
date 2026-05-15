@@ -1,0 +1,50 @@
+# ISLE-IR dependencies — target Python 3.11 (newer versions lack wheels for
+# faiss / cuml). Install order (see README quickstart):
+#   1. conda create -n isle python=3.11
+#   2. pip install torch --index-url https://download.pytorch.org/whl/cu118
+#   3. pip install -r requirements.txt
+#   4. pip install -e .
+#
+# NOTE on faiss: the `faiss-gpu` PyPI package is unmaintained. On the CUDA rig
+# prefer `conda install -c pytorch faiss-gpu`, or `pip install faiss-gpu-cu11`.
+# On machines without a GPU use `faiss-cpu` instead of the line below.
+
+# ── Data ingestion ───────────────────────────────────────────────────────
+arxiv==2.1.3
+pyalex>=0.15            # OpenAlex client — free API key required since Feb 2026
+pandas>=2.0
+pyarrow>=14.0
+tqdm
+requests
+sickle                  # OAI-PMH bulk-harvest fallback
+
+# ── Retrieval ────────────────────────────────────────────────────────────
+bm25s[full]             # pure-Python BM25 (arXiv:2407.03618)
+PyStemmer               # stemming for bm25s
+sentence-transformers>=3.0
+faiss-gpu               # see the faiss note above; swap for faiss-cpu if no GPU
+
+# ── Topic modeling ───────────────────────────────────────────────────────
+bertopic>=0.16
+umap-learn
+hdbscan
+scikit-learn>=1.4
+
+# ── Knowledge graph ──────────────────────────────────────────────────────
+networkx>=3.3
+pyvis>=0.3.2
+streamlit-agraph
+
+# ── Frontend ─────────────────────────────────────────────────────────────
+streamlit>=1.35
+plotly>=5.20
+
+# ── Evaluation ───────────────────────────────────────────────────────────
+gensim>=4.3             # topic coherence (c_v, NPMI)
+
+# ── Dev tooling ──────────────────────────────────────────────────────────
+ruff
+pytest
+
+# ── Enhancement deps — add when implementing the above-and-beyond features ─
+# adapters              # required by allenai/specter2_base (768-dim option)

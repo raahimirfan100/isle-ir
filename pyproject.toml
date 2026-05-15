@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "isle-ir"
+version = "0.1.0"
+description = "Hybrid information retrieval with topic modeling and knowledge-graph exploration"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "Abubakar Ahmed" },
+    { name = "Raahim Irfan" },
+    { name = "Mujtaba Kamran" },
+]
+# Runtime dependencies are pinned in requirements.txt (the canonical install
+# list — it also carries the torch/faiss index-URL caveats). `pip install -e .`
+# only installs this package so the src/ modules import without a sys.path hack.
+
+[tool.setuptools.packages.find]
+where = ["src"]
+# Exposes app, retrieval, topics, graph, ingestion as importable top-level
+# packages — e.g. `from app.config import CORPUS_PATH`.
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["docs", "notebooks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
