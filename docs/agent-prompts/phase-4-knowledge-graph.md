@@ -48,5 +48,5 @@ PageRank link analysis and the author collaboration network are above-and-beyond
 they plug in; do not build them until the core graph works.
 
 ## Commit & branch
-Branch `feat/mujtaba-kg` off `dev`. Small commits: `feat(graph): build paper
+Branch `feat/knowledge-graph` off `dev`. Small commits: `feat(graph): build paper
 and author nodes`, `feat(graph): add citation impact analytics`.

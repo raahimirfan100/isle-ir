@@ -45,6 +45,6 @@ either output unchanged, so the shapes must be identical.
 - [ ] `ruff check .` clean; output consumable by `graph.builder` unchanged.
 
 ## Commit & branch
-Branches `feat/abubakar-nmf-eval` and `feat/raahim-bertopic-reranker` off
+Branches `feat/nmf` and `feat/bertopic` off
 `dev`. Small commits: `feat(topics): add NMF k-sweep`,
 `feat(topics): add BERTopic pipeline`.

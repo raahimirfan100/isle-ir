@@ -211,14 +211,17 @@ isle-ir/
 ```
 main  ← protected, merge via PR with 1 review
   └── dev  ← integration branch
-        ├── feat/abubakar-bm25-rrf
-        ├── feat/abubakar-nmf-eval
-        ├── feat/raahim-faiss-specter2
-        ├── feat/raahim-bertopic-reranker
-        ├── feat/mujtaba-ingestion
-        ├── feat/mujtaba-kg
-        └── feat/mujtaba-streamlit
+        ├── feat/bm25-rrf
+        ├── feat/nmf
+        ├── feat/faiss-index
+        ├── feat/bertopic
+        ├── feat/ingestion
+        ├── feat/knowledge-graph
+        └── feat/streamlit-ui
 ```
+
+Branches are named `feat/<feature>` (also `fix/`, `docs/`, `chore/`) — feature,
+not developer. The repo is public; branch names should not carry personal names.
 
 **Rules:** No direct pushes to `dev` or `main`. Every PR needs one team member's review. Raahim owns the final integration merge to `main`.
 

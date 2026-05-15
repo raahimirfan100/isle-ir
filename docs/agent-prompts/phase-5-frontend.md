@@ -44,5 +44,5 @@ A clean import and passing lint do not prove a UI works — it is only "done"
 after you have exercised it in a browser (see `AGENTS.md` → Verification).
 
 ## Commit & branch
-Branches `feat/mujtaba-streamlit` (and tab branches) off `dev`. Small commits:
+Branches `feat/streamlit-ui` (and tab branches) off `dev`. Small commits:
 `feat(app): add main layout and caching`, `feat(app): add results tab`.

@@ -47,6 +47,6 @@ them exactly so the UI and evaluation code can call them unchanged.
 - [ ] `ruff check .` clean; all signatures match Contracts B/C/D exactly.
 
 ## Commit & branch
-Branches `feat/abubakar-bm25-rrf` and `feat/raahim-faiss-specter2` off `dev`.
+Branches `feat/bm25-rrf` and `feat/faiss-index` off `dev`.
 Small commits: `feat(retrieval): add BM25 index`, `test(retrieval): RRF unit
 tests`, `feat(retrieval): wire hybrid pipeline`.

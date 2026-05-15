@@ -14,12 +14,14 @@ else.
 ```
 main           protected — merge only via reviewed PR
   └── dev      integration branch — features merge here first
-        ├── feat/abubakar-bm25-rrf
-        ├── feat/raahim-faiss-specter2
-        └── feat/mujtaba-ingestion
+        ├── feat/bm25-rrf
+        ├── feat/faiss-index
+        └── feat/ingestion
 ```
 
-- Name feature branches `feat/<name>-<feature>` (or `fix/`, `docs/`, `chore/`).
+- Name branches by **feature, not developer**: `feat/<feature>` (or `fix/`,
+  `docs/`, `chore/`). The repo is public — branch names should not carry
+  personal names. Example: `feat/faiss-index`, not `feat/raahim-faiss`.
 - Branch off `dev`, never off `main`.
 - Never force-push `dev` or `main`. Never push directly to either.
 - Raahim owns the final integration merge from `dev` to `main`.

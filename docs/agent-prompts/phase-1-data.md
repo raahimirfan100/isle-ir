@@ -43,5 +43,5 @@ exactly the specified columns and types. Downstream code trusts this schema.
 - [ ] `ruff check .` clean; ingestion modules import without error.
 
 ## Commit & branch
-Branch `feat/mujtaba-ingestion` off `dev`. Small commits:
+Branch `feat/ingestion` off `dev`. Small commits:
 `feat(ingestion): load arXiv snapshot`, `feat(ingestion): add OpenAlex enrichment`.

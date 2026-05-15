@@ -40,6 +40,6 @@ coherence scores, and corpus statistics for the report.
 - [ ] `ruff check .` clean.
 
 ## Commit & branch
-Branch `feat/abubakar-nmf-eval` (or a dedicated eval branch) off `dev`. Small
+Branch `feat/evaluation` off `dev`. Small
 commits: `feat(eval): add ablation harness`, `feat(eval): add corpus stats`,
 `docs(eval): record final ablation numbers`.

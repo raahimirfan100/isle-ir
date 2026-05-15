@@ -59,16 +59,17 @@ Full workflow in `CONTRIBUTING.md`. The essentials for an agent:
   ~200 changed lines.
 - **No machine enforcement.** There is no commit hook or commit-time linter.
   This convention is on you — following it keeps the public history clean.
-- Branch `feat/<name>-<feature>` off `dev`. Never push to `dev` or `main`
-  directly; never force-push.
+- Branch by **feature, not developer**: `feat/<feature>` off `dev` (e.g.
+  `feat/faiss-index`). The repo is public — keep personal names out of branch
+  names. Never push to `dev` or `main` directly; never force-push.
 
 ### Raahim's personal workflow (Raahim's tasks only)
 
 This is **not** a project-wide rule — other teammates commit however they
 prefer. When an agent is doing **Raahim's** work specifically:
 
-- Organize the work into short-lived sub-branches off his feature branch
-  (e.g. `feat/raahim-faiss-specter2/encoding`, then `…/index-build`).
+- Organize the work into short-lived sub-branches off the feature branch
+  (e.g. `feat/faiss-index/encoding`, then `feat/faiss-index/index-build`).
 - Commit *very* frequently in small, self-contained steps, so the history
   reads as a clear progression of the work.
 
