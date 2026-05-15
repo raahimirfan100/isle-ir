@@ -13,7 +13,7 @@ env/
 .ruff_cache/
 .mypy_cache/
 
-# ── Data & model artifacts (shared via Google Drive, never committed) ───
+# ── Data & model artifacts (distributed as GitHub Release assets) ──────
 # See docs/SSOT.md §15 — corpus.parquet, embeddings.npy, FAISS/BM25 indexes.
 data/raw/*
 data/processed/*

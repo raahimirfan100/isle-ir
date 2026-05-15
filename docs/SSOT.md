@@ -374,7 +374,7 @@ def build_knowledge_graph(
 | Day 1–2 | Set up Colab, clone repo, verify `bm25s` + `gensim` import cleanly | Set up conda env, verify `torch.cuda.is_available()` + `faiss.get_num_gpus()` | Download arXiv Kaggle snapshot (`kaggle datasets download -d Cornell-University/arxiv`) |
 | Day 3–4 | Write `bm25_index.py`, test on 5k paper sample from Mujtaba | Test SPECTER2 encoding on 5k sample, confirm dim=768, time the batch | Write `arxiv_loader.py`, filter cs.* categories, output parquet with all Contract A columns |
 | Day 5–6 | Write `rrf.py`, unit test with dummy ranked lists (no actual index needed) | Write `faiss_index.py`, `IndexIVFFlat` build+search, confirm nlist=1024 training | Write `openalex_enrich.py`, enrich 1k papers via DOI, verify institutions+countries populate |
-| Day 7 | **✓ BM25 search works on 5k sample; RRF unit tests pass** | **✓ FAISS search works on 5k sample; embeddings.npy committed to Drive** | **✓ corpus.parquet committed: 50k papers minimum, all columns present** |
+| Day 7 | **✓ BM25 search works on 5k sample; RRF unit tests pass** | **✓ FAISS search works on 5k sample; embeddings.npy on GitHub Releases** | **✓ corpus.parquet committed: 50k papers minimum, all columns present** |
 
 **Hard dependency:** Mujtaba's parquet must be available by Day 3 at minimum as a 5k sample, even if the full corpus isn't ready until Day 7.
 
@@ -402,7 +402,7 @@ def build_knowledge_graph(
 | Day 19–20 | Start labeling `test_queries.json` — binary relevance for top-5 per query (this takes time, do it steadily) | Implement "More Like This" in `faiss_index.py` via `search_by_embedding` | Write `visualization.py`: PyVis HTML export + streamlit-agraph inline render |
 | Day 21 | **✓ NMF coherence score logged; k selected; `corpus_stats.py` produces two plots** | **✓ BERTopic coherence > NMF (verify); "More Like This" returns in <1s** | **✓ Full KG with all 6 node types; PageRank scores on all paper nodes** |
 
-**Shared file transfer (Day 21):** Raahim uploads `embeddings.npy` to Google Drive for Mujtaba to use in KG topic probability embedding.
+**Shared file transfer (Day 21):** Raahim publishes `embeddings.npy` to a GitHub Release for Mujtaba to use in KG topic probability embedding.
 
 ---
 
@@ -672,7 +672,12 @@ Use these plots in Section 9.a of the report under "Corpus Statistics."
 
 1. **Async standup every evening:** Message in group chat — done / blocked / next. Two lines max.
 2. **Blocking dependency → immediate message:** Don't sit on a blocker for 24 hours.
-3. **Large files go to Google Drive** (Mujtaba creates and shares the folder): `corpus.parquet`, `embeddings.npy`, FAISS index files — nothing >50 MB on GitHub.
+3. **Large files go to GitHub Releases**, not the git tree: `corpus.parquet`,
+   `embeddings.npy`, FAISS/BM25 index files. Release assets allow up to 2 GB
+   per file and stay private to collaborators on a private repo. Publish with
+   `gh release create data-v1 corpus.parquet embeddings.npy --notes "..."` and
+   fetch with `gh release download data-v1`. (Google Drive is an acceptable
+   fallback.) The git tree itself never carries files >50 MB.
 4. **Raahim's machine = integration environment:** Code must run on Linux/Windows with CUDA without modification. Mujtaba (macOS) should test imports carefully — some libraries behave differently on Apple Silicon.
 5. **No hardcoded paths:** Everything goes through `config.py`. This is the single most common cause of "works on my machine" integration failures.
 

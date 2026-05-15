@@ -78,8 +78,9 @@ person's work (Contracts A–F). Your internal implementation is your own; your
 ## Large files
 
 `corpus.parquet`, `embeddings.npy`, and FAISS/BM25 indexes are **never**
-committed — `.gitignore` blocks them. Share them via the team Google Drive
-folder (see `docs/SSOT.md` §15).
+committed — `.gitignore` blocks them. Distribute them as **GitHub Release
+assets** (`gh release create data-v1 <files>` / `gh release download data-v1`);
+see `docs/SSOT.md` §15.
 
 ## Issues
 

@@ -86,8 +86,8 @@ streamlit run src/app/main.py
 ```
 
 Data and index artifacts (`corpus.parquet`, `embeddings.npy`, FAISS/BM25
-indexes) are **not** in git — they are shared via Google Drive. See
-[`docs/SSOT.md` §15](docs/SSOT.md).
+indexes) are **not** in git — they are distributed as GitHub Release assets.
+See [`docs/SSOT.md` §15](docs/SSOT.md).
 
 ## Project status
 
