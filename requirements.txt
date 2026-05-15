@@ -21,7 +21,7 @@ sickle                  # OAI-PMH bulk-harvest fallback
 # ── Retrieval ────────────────────────────────────────────────────────────
 bm25s[full]             # pure-Python BM25 (arXiv:2407.03618)
 PyStemmer               # stemming for bm25s
-sentence-transformers>=3.0
+sentence-transformers>=5.5.0
 faiss-gpu               # see the faiss note above; swap for faiss-cpu if no GPU
 
 # ── Topic modeling ───────────────────────────────────────────────────────
