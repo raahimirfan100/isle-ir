@@ -427,7 +427,7 @@ def build_knowledge_graph(
 |---|---|---|---|
 | Day 22–23 | Write `results_tab.py` (result cards with RRF score, year, categories, "More Like This" button) and `topics_tab.py` | Full integration test: import all modules in one script, fix any import/path errors | Write `main.py` layout: sidebar, `@st.cache_resource` for indexes, `@st.cache_data` for corpus |
 | Day 24–25 | Finish all 20 test queries labeled in `test_queries.json` | Add session state management to Streamlit — results persist across tab switches without re-running | Write `graph_tab.py` (PyVis embed) + `analytics_tab.py` (year histogram, topic pie, PageRank vs citation table) |
-| Day 26–27 | Run `ablation.py`: 4 system variants × 20 queries × 3 metrics → write `ablation_table.csv` | Run complete demo walkthrough, time each step; add loading spinners where >2 seconds | Write `README.md` with exact run instructions (`pip install`, `streamlit run src/app/main.py`) |
+| Day 26–27 | Run `ablation.py`: 4 system variants × 20 queries × 3 metrics → write `ablation_table.csv` | Run complete demo walkthrough, time each step; add loading spinners where >2 seconds | Write `README.md` with exact run instructions (`uv sync`, `uv run streamlit run src/app/main.py`) |
 | Day 28 | **✓ `ablation_table.csv` committed with real numbers** | **✓ Full demo runs without crashes; all 5 tabs display correctly** | **✓ Streamlit app committed; README complete** |
 
 ---
