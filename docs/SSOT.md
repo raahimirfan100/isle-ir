@@ -89,6 +89,15 @@ This is excellent for a 10% project. The key is that your report explicitly call
 | **Owns** | BM25 · RRF · NMF · Query expansion · Ablation study · Report sections 1,2,7,9,11 | SPECTER2 · FAISS · BERTopic · Cross-encoder · More Like This · pipeline.py · Report sections 5,8 | arXiv/OA ingestion · KG · Author network · PageRank · Streamlit UI · Report sections 3,4,6,10 |
 | **Presentation** | Evaluation results + key findings | Live demo narration | Architecture diagrams + KG walkthrough |
 
+**Why this split.** GPU-heavy, time-sensitive work runs on Raahim's RTX 3060
+(SPECTER2/dense encoding, FAISS-GPU index build, BERTopic UMAP+HDBSCAN,
+cross-encoder reranking) — it cannot finish on a Colab free session or an M4
+within the time budget, and final integration runs there too. The data
+pipeline, knowledge graph (NetworkX is CPU-bound, not GPU-bound) and Streamlit
+UI run well on Mujtaba's M4. BM25, NMF and RRF are pure CPU/Python and suit
+Abubakar's Colab, which disconnects after ~12 h — so his jobs stay short and
+notebook-driven.
+
 ---
 
 ## 3. System Architecture
@@ -467,6 +476,7 @@ def build_knowledge_graph(
 - NMF: Lee & Seung, Nature 1999
 - PageRank: Page et al., 1999
 - UMAP: McInnes et al., 2018
+- LitSearch: Ajith et al., EMNLP 2024 (retrieval benchmark for scientific literature)
 
 ---
 

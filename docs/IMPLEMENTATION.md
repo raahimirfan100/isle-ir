@@ -22,6 +22,32 @@ Every section below is grounded in a specific library, GitHub repo, paper, or ve
 
 ---
 
+## Hardware & Scope
+
+**Compute — Raahim's rig (the primary build / integration node).**
+
+| Component | Spec | Relevance |
+|---|---|---|
+| GPU | RTX 3060 · 12 GB GDDR6 · CUDA 8.6 | FAISS-GPU indexes, batch encoding (~2000 docs/s with MiniLM), GPU UMAP+HDBSCAN via RAPIDS cuML |
+| CPU | Ryzen 7 7700 · 8C/16T · Zen 4 | parallel workers for ingestion, tokenisation, NMF |
+| RAM | 64 GB DDR5 | full embedding matrix stays resident (~1.5 GB for 1M×384 float32) |
+| Storage | Samsung 990 Pro · PCIe 4.0 | sub-second cold load of the embedding index |
+
+**Key VRAM insight:** MiniLM-L6-v2 uses ~500 MB on the GPU, leaving ~11.5 GB
+for FAISS. A 500k-paper / 384-dim index needs only ~750 MB VRAM — corpus size
+is not VRAM-bound on this hardware; it is bound by encoding time and the
+project timeline.
+
+**Corpus scope.** arXiv `cs.*` categories, roughly 2018–2024. Target
+**~100–150k papers** for the committed timeline (`SSOT.md` §7 sets a 50k
+floor). The hardware comfortably supports **400–600k** as a stretch if time
+allows — treat the final size as a Phase-1 team decision, set via `max_records`
+in the arXiv loader. Sources: arXiv (Kaggle snapshot / API) + OpenAlex (free
+API key required since Feb 2026). Store: `corpus.parquet` plus the FAISS /
+bm25s indexes — no database server is needed.
+
+---
+
 ## Phase 0 — Project Skeleton & Environment
 
 ### 0.1 Recommended Project Structure
@@ -1135,6 +1161,23 @@ print("BERTopic c_npmi:", eval_coherence(bertopic_keywords, "c_npmi"))
 ```
 
 **Note from Gensim docs:** `c_v` is the most cited metric but has criticisms. Report `u_mass` alongside it — it's computed on corpus co-occurrences and is more reliable for scientific text evaluation.
+
+### 6.3 Knowledge Graph Statistics
+
+One figure for the KG section of the report: node/edge counts and the degree
+distribution, which exposes the graph's power-law structure.
+
+```python
+import plotly.express as px
+
+print(f"nodes={G.number_of_nodes()}  edges={G.number_of_edges()}")
+
+degrees = [d for _, d in G.degree()]
+fig = px.histogram(x=degrees, log_y=True,
+                   title="Node Degree Distribution (log scale)",
+                   labels={"x": "Degree"})
+fig.write_html("evaluation/results/kg_degree_distribution.html")
+```
 
 ---
 
