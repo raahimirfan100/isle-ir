@@ -78,7 +78,7 @@ in `.python-version`) and picks the GPU or CPU build automatically.
 curl -LsSf https://astral.sh/uv/install.sh | sh        # macOS / Linux / WSL
 #   Windows PowerShell:  irm https://astral.sh/uv/install.ps1 | iex
 
-# 2. Set up the environment — auto-detects NVIDIA GPU vs CPU
+# 2. Set up the environment — picks GPU (Linux/WSL + NVIDIA) or CPU
 ./setup.sh                       # or force it:  ./setup.sh gpu | ./setup.sh cpu
 
 # 3. Run the app (after the data + index phases — see docs/agent-prompts/)
@@ -92,6 +92,10 @@ The two hardware variants — `uv sync` installs the project editable, so the
 uv sync --extra gpu     # torch (CUDA 12.6) + faiss-gpu   — RTX rig, Google Colab
 uv sync --extra cpu     # torch (CPU / Apple MPS) + faiss-cpu — M4 Mac, Intel laptop
 ```
+
+GPU mode is **Linux/WSL only** — `faiss-gpu-cu12` publishes Linux x86-64 wheels
+only, so on Windows and macOS `setup.sh` always selects `cpu` (and an explicit
+`./setup.sh gpu` there exits with an error).
 
 No `uv` on the machine? `pip install -r requirements-gpu.txt` (or
 `requirements-cpu.txt`) are uv-exported fallbacks; `uv.lock` is the source of
