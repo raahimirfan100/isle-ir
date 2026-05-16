@@ -31,10 +31,10 @@ only when its exit-criteria checklist is fully met.
 
 ## Infrastructure state
 
-- **Branches:** `main` — protected: reviewed PR + 1 approval, no force-push or
-  deletion. `dev` — direct merges allowed (no PR/review); no force-push or
-  deletion. Feature work: `feat/<feature>` off `dev`. The local
-  `chore/repo-bootstrap` branch is merged and disposable.
+- **Branches:** `main` — protected: a PR is required but no review (the author
+  can self-merge); no force-push or deletion. `dev` — direct merges allowed (no
+  PR/review); no force-push or deletion. Feature work: `feat/<feature>` off
+  `dev`. The local `chore/repo-bootstrap` branch is merged and disposable.
 - **CI:** ruff lint + syntax + package-layout check on every PR and push.
 - **Dependabot:** weekly pip and GitHub Actions update PRs.
 - **Visibility:** private. Intended public after the project concludes — secret
@@ -48,7 +48,7 @@ only when its exit-criteria checklist is fully met.
 | MIT license | `LICENSE` |
 | Conventional Commits, no machine enforcement (no hooks) | `AGENTS.md` |
 | Branch names by feature, not developer | `CONTRIBUTING.md` |
-| `dev` accepts direct merges (no PR); `main` is reviewed-PR only | `CONTRIBUTING.md`, SSOT §4 |
+| `dev` accepts direct merges (no PR); `main` needs a PR but no review | `CONTRIBUTING.md`, SSOT §4 |
 | Embedding model: **SPECTER2** (`allenai/specter2_base`, 768-dim); MiniLM kept as comparison baseline | `src/app/config.py` |
 | Environment: **uv** (`uv.lock`, `cpu`/`gpu` extras) — conda dropped; PyTorch `cu126` + `faiss-gpu-cu12` | `pyproject.toml`, `setup.sh` |
 | No Claude git attribution; no `claude/*` branch names | team preference |

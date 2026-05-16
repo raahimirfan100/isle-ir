@@ -12,7 +12,7 @@ else.
 ## Branching model
 
 ```
-main           protected — merge only via reviewed PR
+main           protected — merge via PR (no required review)
   └── dev      integration branch — features merge here directly (no PR)
         ├── feat/bm25-rrf
         ├── feat/faiss-index
@@ -75,8 +75,9 @@ no PR or review required. First make sure your branch runs without errors and
 `ruff check .` passes (CI also runs on every push to `dev`).
 
 **Into `main`** — open a PR from `dev`, fill in the PR template (summary,
-contract impact, test plan), get **one** teammate's review, and confirm CI is
-green. Raahim owns this final integration merge.
+contract impact, test plan), and confirm CI is green. No teammate review is
+required — you can merge your own PR; a review is welcome but optional. Raahim
+owns this final integration merge.
 
 ## Large files
 

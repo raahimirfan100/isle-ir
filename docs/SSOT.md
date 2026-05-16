@@ -220,7 +220,7 @@ isle-ir/
 ### Git Workflow
 
 ```
-main  ← protected, merge via PR with 1 review
+main  ← protected, merge via PR (no required review)
   └── dev  ← integration branch
         ├── feat/bm25-rrf
         ├── feat/nmf
@@ -235,9 +235,9 @@ Branches are named `feat/<feature>` (also `fix/`, `docs/`, `chore/`) — feature
 not developer. The repo is public; branch names should not carry personal names.
 
 **Rules:** Feature branches merge into `dev` directly — no PR required. `main`
-changes go through a reviewed PR with one team member's approval. Never
-force-push or delete `dev` or `main`. Raahim owns the final integration merge
-to `main`.
+changes go through a PR too, but no review is required — the author can
+self-merge. Never force-push or delete `dev` or `main`. Raahim owns the final
+integration merge to `main`.
 
 ---
 

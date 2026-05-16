@@ -89,8 +89,8 @@ Full workflow in `CONTRIBUTING.md`. The essentials for an agent:
 - Branch by **feature, not developer**: `feat/<feature>` off `dev` (e.g.
   `feat/faiss-index`). The repo is public — keep personal names out of branch
   names. Merge feature work into `dev` directly — a merge commit is fine, no
-  PR needed; `main` changes go through a reviewed PR. Never force-push or
-  delete `dev` or `main`.
+  PR needed; `main` changes go through a PR too — no required review, the
+  author can self-merge. Never force-push or delete `dev` or `main`.
 
 ### Raahim's personal workflow (Raahim's tasks only)
 
