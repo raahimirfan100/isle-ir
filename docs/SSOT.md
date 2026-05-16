@@ -234,7 +234,10 @@ main  ← protected, merge via PR with 1 review
 Branches are named `feat/<feature>` (also `fix/`, `docs/`, `chore/`) — feature,
 not developer. The repo is public; branch names should not carry personal names.
 
-**Rules:** No direct pushes to `dev` or `main`. Every PR needs one team member's review. Raahim owns the final integration merge to `main`.
+**Rules:** Feature branches merge into `dev` directly — no PR required. `main`
+changes go through a reviewed PR with one team member's approval. Never
+force-push or delete `dev` or `main`. Raahim owns the final integration merge
+to `main`.
 
 ---
 

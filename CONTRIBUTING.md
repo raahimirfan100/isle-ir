@@ -13,7 +13,7 @@ else.
 
 ```
 main           protected — merge only via reviewed PR
-  └── dev      integration branch — features merge here first
+  └── dev      integration branch — features merge here directly (no PR)
         ├── feat/bm25-rrf
         ├── feat/faiss-index
         └── feat/ingestion
@@ -23,7 +23,8 @@ main           protected — merge only via reviewed PR
   `docs/`, `chore/`). The repo is public — branch names should not carry
   personal names. Example: `feat/faiss-index`, not `feat/raahim-faiss`.
 - Branch off `dev`, never off `main`.
-- Never force-push `dev` or `main`. Never push directly to either.
+- Merge feature branches into `dev` directly — no PR or review required.
+- Never force-push or delete `dev` or `main`.
 - Raahim owns the final integration merge from `dev` to `main`.
 
 ## Commits — Conventional Commits
@@ -67,13 +68,15 @@ person's work (Contracts A–F). Your internal implementation is your own; your
 > updating `docs/SSOT.md` in the same PR. A silent signature change breaks
 > someone else's module.
 
-## Pull requests
+## Merging
 
-1. Push your feature branch and open a PR into `dev`.
-2. Fill in the PR template (summary, contract impact, test plan).
-3. At least **one** teammate reviews and approves before merge.
-4. Confirm CI is green (`ruff` lint passes).
-5. Before opening the PR, your branch must run without errors on your machine.
+**Into `dev`** — merge your feature branch directly; a merge commit is fine,
+no PR or review required. First make sure your branch runs without errors and
+`ruff check .` passes (CI also runs on every push to `dev`).
+
+**Into `main`** — open a PR from `dev`, fill in the PR template (summary,
+contract impact, test plan), get **one** teammate's review, and confirm CI is
+green. Raahim owns this final integration merge.
 
 ## Large files
 
