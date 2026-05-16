@@ -5,10 +5,11 @@ Contract: C — FAISSIndex (SSOT §6C)
 Phase:    2 — Hybrid Retrieval (IMPLEMENTATION.md §2.2)
 STATUS:   core
 
-Encodes papers with a SentenceTransformer and serves nearest-neighbour search
-via a FAISS index. The embedding model and dimension come from
-src/app/config.py (EMBEDDING_MODEL, EMBEDDING_DIM) — the single knob; see the
-Phase-0 doc-mismatch note in IMPLEMENTATION.md.
+Encodes papers with the configured embedding model and serves
+nearest-neighbour search via a FAISS index. The model and dimension come from
+src/app/config.py (EMBEDDING_MODEL, EMBEDDING_DIM) — currently SPECTER2,
+768-dim. SPECTER2 loads via the `adapters` library, not a plain
+SentenceTransformer.
 """
 
 from __future__ import annotations

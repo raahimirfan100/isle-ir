@@ -25,17 +25,16 @@ BM25_DIR = ROOT / "data" / "indexes" / "bm25"
 FAISS_DIR = ROOT / "data" / "indexes" / "faiss"
 EVAL_RESULTS_DIR = ROOT / "evaluation" / "results"
 
-# ── Embedding model — TEAM DECISION (lock in Phase 0) ────────────────────
-# The two planning docs disagree (see docs/IMPLEMENTATION.md header):
-#   Option A — sentence-transformers/all-MiniLM-L6-v2  · 384-dim · simple,
-#              fast, no extra deps. Matches docs/IMPLEMENTATION.md code.
-#   Option B — allenai/specter2_base                   · 768-dim · scientific
-#              text, citation-aware. Matches docs/SSOT.md Contract C / §10;
-#              needs the `adapters` library.
-# This file is the ONLY knob. Default below is Option A (core path). If the
-# team picks B, change both lines AND update whichever doc still disagrees.
-EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
-EMBEDDING_DIM = 384
+# ── Embedding model — DECIDED: SPECTER2 ──────────────────────────────────
+# allenai/specter2_base — a scientific-document embedding model trained on
+# citation graphs, purpose-built for scientific-paper retrieval. Chosen over
+# general-purpose MiniLM because this is a scientific-literature search
+# system; 768-dim is comfortable on the RTX 3060. MiniLM/384 is kept only as
+# the baseline for the SPECTER2-vs-MiniLM study (SSOT §10). Loading SPECTER2
+# needs the `adapters` library (base model + proximity adapter).
+# This file is the ONLY knob — change here and it propagates everywhere.
+EMBEDDING_MODEL = "allenai/specter2_base"
+EMBEDDING_DIM = 768
 
 # Cross-encoder reranker (enhancement — SSOT §10).
 RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"

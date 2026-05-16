@@ -47,13 +47,12 @@ only when its exit-criteria checklist is fully met.
 | MIT license | `LICENSE` |
 | Conventional Commits, no machine enforcement (no hooks) | `AGENTS.md` |
 | Branch names by feature, not developer | `CONTRIBUTING.md` |
-| Embedding model — OPEN, lock in Phase 0 (default MiniLM/384; SSOT contracts assume SPECTER2/768) | `src/app/config.py` |
+| Embedding model: **SPECTER2** (`allenai/specter2_base`, 768-dim); MiniLM kept as comparison baseline | `src/app/config.py` |
 | No Claude git attribution; no `claude/*` branch names | team preference |
 | Canonical docs: `docs/SSOT.md` + `docs/IMPLEMENTATION.md` (older drafts dropped) | — |
 | Committed scope first; enhancements deferred and TODO-marked | `AGENTS.md`, SSOT §10 |
 
 ## Open items
 
-- [ ] Phase 0: team locks the embedding model in `src/app/config.py`.
 - [ ] After CI runs once, optionally add "Lint & syntax" as a required status check.
 - [ ] Delete the merged local `chore/repo-bootstrap` branch.

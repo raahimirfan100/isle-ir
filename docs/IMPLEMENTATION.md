@@ -7,12 +7,13 @@
 > choices and known pitfalls. Project management (roles, interface contracts,
 > timeline, evaluation) lives in [`SSOT.md`](SSOT.md). The two are complementary.
 >
-> ⚠ **Known doc mismatch — resolve in Phase 0.** Code in this guide targets
-> `all-MiniLM-L6-v2` (384-dim); `SSOT.md` Contract C and §10 assume
-> `specter2_base` (768-dim). `src/app/config.py` is the single source of truth
-> for the embedding model — the team picks one there in Phase 0, then updates
-> whichever doc disagrees. Module filenames here are illustrative; the repo
-> follows `SSOT.md` §4 (e.g. `arxiv_loader.py`, not `arxiv_fetch.py`).
+> **Embedding model — decided: SPECTER2** (`allenai/specter2_base`, 768-dim),
+> the citation-trained scientific-document model that matches `SSOT.md`
+> Contract C. The code samples below use `all-MiniLM-L6-v2` as a simpler
+> illustration — treat the model as config-driven (`src/app/config.py` is the
+> single knob); MiniLM stays as the baseline for the SPECTER2-vs-MiniLM study
+> (SSOT §10). Module filenames here are illustrative; the repo follows
+> `SSOT.md` §4 (e.g. `arxiv_loader.py`, not `arxiv_fetch.py`).
 
 ---
 

@@ -22,6 +22,7 @@ sickle                  # OAI-PMH bulk-harvest fallback
 bm25s[full]             # pure-Python BM25 (arXiv:2407.03618)
 PyStemmer               # stemming for bm25s
 sentence-transformers>=5.5.0
+adapters                # SPECTER2 loading (allenai/specter2_base + proximity adapter)
 faiss-gpu               # see the faiss note above; swap for faiss-cpu if no GPU
 
 # ── Topic modeling ───────────────────────────────────────────────────────
@@ -45,6 +46,3 @@ gensim>=4.3             # topic coherence (c_v, NPMI)
 # ── Dev tooling ──────────────────────────────────────────────────────────
 ruff
 pytest
-
-# ── Enhancement deps — add when implementing the above-and-beyond features ─
-# adapters              # required by allenai/specter2_base (768-dim option)

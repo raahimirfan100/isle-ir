@@ -25,10 +25,10 @@ and **lock the embedding-model team decision**.
 2. Verify imports: `python -c "import app.config, retrieval.rrf, graph.builder"`.
 3. On the GPU machine, verify CUDA: `torch.cuda.is_available()` and
    `faiss.get_num_gpus()`.
-4. **Team decision — embedding model.** Discuss MiniLM/384 vs SPECTER2/768
-   (trade-offs in the `docs/IMPLEMENTATION.md` header). Set `EMBEDDING_MODEL`
-   and `EMBEDDING_DIM` in `src/app/config.py` accordingly, and update whichever
-   planning doc still disagrees so the repo is internally consistent.
+4. **Verify the embedding model.** It is decided — SPECTER2
+   (`allenai/specter2_base`, 768-dim), already set in `src/app/config.py`.
+   Confirm it loads on the RTX rig (needs the `adapters` library) and yields
+   768-dim vectors.
 5. Register a free OpenAlex API key (https://openalex.org/api-key) and set
    `OPENALEX_EMAIL` / `OPENALEX_API_KEY` in your environment.
 6. Create the `dev` branch off `main` if it does not exist; configure branch
@@ -38,8 +38,8 @@ and **lock the embedding-model team decision**.
 - [ ] `pip install -e .` succeeds; `import app.config` works from any directory.
 - [ ] `ruff check .` is clean.
 - [ ] GPU verified on the RTX rig (CUDA + FAISS see the GPU).
-- [ ] `EMBEDDING_MODEL` / `EMBEDDING_DIM` decided and committed in config.py;
-      no planning doc contradicts it.
+- [ ] SPECTER2 (`allenai/specter2_base`) loads on the GPU and yields 768-dim
+      embeddings.
 - [ ] OpenAlex key registered and set in the environment.
 - [ ] `dev` branch exists; `main` and `dev` are protected.
 
