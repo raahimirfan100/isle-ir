@@ -26,6 +26,14 @@ data/indexes/*
 evaluation/results/*
 !evaluation/results/.gitkeep
 
+# ── ML model weights / serialized models (also Release assets) ─────────
+*.pt
+*.pth
+*.safetensors
+*.ckpt
+*.bin
+*.joblib
+
 # ── Secrets & credentials ───────────────────────────────────────────────
 .env
 .env.*

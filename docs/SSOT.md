@@ -211,7 +211,9 @@ isle-ir/
 │   └── 03_topic_eval.ipynb          # Abubakar
 │
 ├── report/                          # See Section 9
-├── requirements.txt                 # Raahim maintains
+├── pyproject.toml                   # dependencies + uv config — Raahim maintains
+├── uv.lock                          # pinned, reproducible install — committed
+├── setup.sh                         # one-command environment setup
 └── README.md                        # Mujtaba drafts
 ```
 
@@ -232,7 +234,10 @@ main  ← protected, merge via PR with 1 review
 Branches are named `feat/<feature>` (also `fix/`, `docs/`, `chore/`) — feature,
 not developer. The repo is public; branch names should not carry personal names.
 
-**Rules:** No direct pushes to `dev` or `main`. Every PR needs one team member's review. Raahim owns the final integration merge to `main`.
+**Rules:** Feature branches merge into `dev` directly — no PR required. `main`
+changes go through a reviewed PR with one team member's approval. Never
+force-push or delete `dev` or `main`. Raahim owns the final integration merge
+to `main`.
 
 ---
 
@@ -380,7 +385,7 @@ def build_knowledge_graph(
 
 | | Abubakar (Colab) | Raahim (RTX rig) | Mujtaba (M4) |
 |---|---|---|---|
-| Day 1–2 | Set up Colab, clone repo, verify `bm25s` + `gensim` import cleanly | Set up conda env, verify `torch.cuda.is_available()` + `faiss.get_num_gpus()` | Download arXiv Kaggle snapshot (`kaggle datasets download -d Cornell-University/arxiv`) |
+| Day 1–2 | Set up Colab, clone repo, `./setup.sh`, verify `bm25s` + `gensim` import cleanly | `./setup.sh` (uv, GPU extra), verify `torch.cuda.is_available()` + `faiss.get_num_gpus()` | Download arXiv Kaggle snapshot (`kaggle datasets download -d Cornell-University/arxiv`) |
 | Day 3–4 | Write `bm25_index.py`, test on 5k paper sample from Mujtaba | Test SPECTER2 encoding on 5k sample, confirm dim=768, time the batch | Write `arxiv_loader.py`, filter cs.* categories, output parquet with all Contract A columns |
 | Day 5–6 | Write `rrf.py`, unit test with dummy ranked lists (no actual index needed) | Write `faiss_index.py`, `IndexIVFFlat` build+search, confirm nlist=1024 training | Write `openalex_enrich.py`, enrich 1k papers via DOI, verify institutions+countries populate |
 | Day 7 | **✓ BM25 search works on 5k sample; RRF unit tests pass** | **✓ FAISS search works on 5k sample; embeddings.npy on GitHub Releases** | **✓ corpus.parquet committed: 50k papers minimum, all columns present** |

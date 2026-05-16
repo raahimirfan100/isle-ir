@@ -24,6 +24,14 @@ class FAISSIndex:
         """Encode papers and build + persist the FAISS index."""
         # TODO(raahim, phase-2): batch-encode; build IndexIVFFlat (train it
         #   before adding!); persist vectors.index, paper_ids.json, embeddings.npy.
+        # NOTE: loading SPECTER2 — after
+        #   model.load_adapter("allenai/specter2", source="hf",
+        #                       load_as="proximity", set_active=True)
+        #   you must ALSO call model.set_active_adapters("proximity").
+        #   set_active=True on load_adapter() does not engage the adapter for
+        #   the forward pass (silent "no adapter activated" warning) — without
+        #   set_active_adapters() the vectors come from the un-adapted base
+        #   model. Doc embedding = last_hidden_state[:, 0, :] (the [CLS] token).
         raise NotImplementedError
 
     def load(self) -> None:
