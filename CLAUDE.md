@@ -12,6 +12,8 @@ This file adds only Claude Code-specific notes.
 - **Slash commands** (`.claude/commands/`):
   - `/phase <N>` — load the phase-N prompt from `docs/agent-prompts/`.
   - `/contract-check` — audit the current code against the SSOT §6 contracts.
+  - `/commit` — draft a Conventional Commits message and commit staged changes.
+  - `/todo` — list in-code TODO markers grouped by module.
 - **Subagents** — use the Explore subagent for codebase search to keep the main
   context lean; run independent research in parallel.
 - **TodoWrite** — track multi-step work; mark each step done as you finish it.
