@@ -31,4 +31,4 @@ jobs:
           python -c "import app.config; print('config import OK')"
 
   # TODO(team): add a `test` job running pytest once tests/ has real tests
-  #   (heavy ML deps will need caching — see requirements.txt install order).
+  #   (heavy ML deps will need caching — install via `uv sync --extra cpu`).

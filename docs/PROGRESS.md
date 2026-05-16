@@ -4,14 +4,14 @@
 > session. It records *state*; the *plan* lives in `docs/SSOT.md`. Update the
 > phase table, the date, and the open items whenever state changes.
 
-**Last updated:** 2026-05-16 · **Stage:** bootstrap complete — Phase 0 is next.
+**Last updated:** 2026-05-16 · **Stage:** Phase 0 in progress — environment & setup.
 
 ## Phase status
 
 | Phase | Scope | Status |
 |---|---|---|
 | Bootstrap | repo scaffold, docs, CI, branch protection | done |
-| 0 — Setup | env, GPU, embedding-model decision | not started |
+| 0 — Setup | env, GPU, embedding-model decision | in progress |
 | 1 — Data | arXiv + OpenAlex -> corpus.parquet | not started |
 | 2 — Retrieval | BM25 + FAISS + RRF + pipeline | not started |
 | 3 — Topics | NMF + BERTopic | not started |
@@ -31,8 +31,9 @@ only when its exit-criteria checklist is fully met.
 
 ## Infrastructure state
 
-- **Branches:** `main` and `dev`, both protected (PR + 1 review, no force-push,
-  no deletion; the repo admin can bypass). Feature work: `feat/<feature>` off
+- **Branches:** `main` — protected: a PR is required but no review (the author
+  can self-merge); no force-push or deletion. `dev` — direct merges allowed (no
+  PR/review); no force-push or deletion. Feature work: `feat/<feature>` off
   `dev`. The local `chore/repo-bootstrap` branch is merged and disposable.
 - **CI:** ruff lint + syntax + package-layout check on every PR and push.
 - **Dependabot:** weekly pip and GitHub Actions update PRs.
@@ -47,7 +48,9 @@ only when its exit-criteria checklist is fully met.
 | MIT license | `LICENSE` |
 | Conventional Commits, no machine enforcement (no hooks) | `AGENTS.md` |
 | Branch names by feature, not developer | `CONTRIBUTING.md` |
+| `dev` accepts direct merges (no PR); `main` needs a PR but no review | `CONTRIBUTING.md`, SSOT §4 |
 | Embedding model: **SPECTER2** (`allenai/specter2_base`, 768-dim); MiniLM kept as comparison baseline | `src/app/config.py` |
+| Environment: **uv** (`uv.lock`, `cpu`/`gpu` extras) — conda dropped; PyTorch `cu126` + `faiss-gpu-cu12` | `pyproject.toml`, `setup.sh` |
 | No Claude git attribution; no `claude/*` branch names | team preference |
 | Canonical docs: `docs/SSOT.md` + `docs/IMPLEMENTATION.md` (older drafts dropped) | — |
 | Committed scope first; enhancements deferred and TODO-marked | `AGENTS.md`, SSOT §10 |

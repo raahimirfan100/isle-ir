@@ -79,65 +79,65 @@ isle-ir/
 │   ├── 01_data_exploration.ipynb
 │   ├── 02_retrieval_eval.ipynb
 │   └── 03_topic_eval.ipynb
-├── requirements.txt
+├── pyproject.toml       # dependencies + uv config — single source of truth
+├── uv.lock              # pinned, reproducible install
+├── setup.sh             # one-command environment setup
 └── README.md
 ```
 
-### 0.2 Full `requirements.txt`
+### 0.2 Dependencies — `pyproject.toml` + uv
 
-```
-# Data
-arxiv==2.1.3
-pyalex>=0.15          # ⚠ As of Feb 13 2026, OpenAlex requires free API key
-pandas>=2.0
-pyarrow>=14.0
-tqdm
-requests
-sickle                # OAI-PMH bulk harvest fallback
+Dependencies live in **`pyproject.toml`** (the single source of truth), locked
+to exact versions in **`uv.lock`**. Hardware-specific packages — PyTorch and
+FAISS — are split into two mutually-exclusive extras so one repo works across
+the whole team:
 
-# Retrieval
-bm25s[full]           # pure-Python BM25, fastest available (arXiv:2407.03618)
-PyStemmer             # optional stemming for bm25s
-sentence-transformers>=3.0
-faiss-gpu             # use faiss-cpu if no CUDA
+| Extra | Installs | For |
+|---|---|---|
+| `gpu` | `torch` (CUDA 12.6) · `faiss-gpu-cu12` | Raahim's RTX 3060 rig · Google Colab |
+| `cpu` | `torch` (CPU / Apple MPS) · `faiss-cpu` | Mujtaba's M4 · Abubakar's Intel laptop |
 
-# Topic Modeling
-bertopic>=0.16
-umap-learn
-hdbscan
-scikit-learn>=1.4
-gensim>=4.3           # coherence scoring only
+`torch` is pulled from the matching PyTorch index (`download.pytorch.org/whl/
+cu126` or `/cpu`) via `[tool.uv.sources]`; `[tool.uv] conflicts` stops the two
+extras being installed together. Everything else (pandas, scikit-learn,
+sentence-transformers, bertopic, networkx, streamlit, gensim, …) is
+platform-agnostic and lives in the base `dependencies`; `ruff` and `pytest`
+are in the `dev` dependency-group.
 
-# Graph
-networkx>=3.3
-pyvis>=0.3.2
-streamlit-agraph      # inline graph in Streamlit (alternative to pyvis HTML)
+> CUDA 12.6 (`cu126`) is the chosen PyTorch build — stable for the RTX 3060
+> (Ampere) and the Colab T4 (Turing), and current as of May 2026. FAISS-GPU
+> comes from the maintained `faiss-gpu-cu12` wheels (Linux x86-64 only — a
+> platform marker keeps the universal lockfile resolvable on macOS/Windows).
 
-# Frontend
-streamlit>=1.35
-plotly>=5.20
-
-# Evaluation
-gensim>=4.3
-```
+`requirements-gpu.txt` / `requirements-cpu.txt` are `uv export` snapshots kept
+as a fallback for environments without uv (e.g. a bare `pip` cell on Colab).
 
 ### 0.3 Environment Setup
 
+[`uv`](https://docs.astral.sh/uv/) manages the Python toolchain, the virtual
+environment and the lockfile. There is no conda step and no manual
+`pip install -e .` — `uv sync` installs the project editable.
+
 ```bash
-conda create -n isle python=3.11 -y
-conda activate isle
+# Install uv once per machine
+curl -LsSf https://astral.sh/uv/install.sh | sh        # macOS / Linux / WSL
+#   Windows PowerShell:  irm https://astral.sh/uv/install.ps1 | iex
 
-# PyTorch with CUDA 11.8 (RTX 3060 supports CUDA ≥ 11.x)
-pip install torch --index-url https://download.pytorch.org/whl/cu118
+# Create .venv (Python 3.11) + install — setup.sh auto-detects GPU vs CPU
+./setup.sh                       # or force it:  ./setup.sh gpu | ./setup.sh cpu
 
-pip install -r requirements.txt
+# Equivalent manual form
+uv sync --extra gpu              # RTX rig / Colab
+uv sync --extra cpu              # M4 Mac / Intel laptop
 ```
 
-**Verify GPU:**
-```python
-import torch, faiss
-print(torch.cuda.get_device_name(0))          # NVIDIA GeForce RTX 3060
-print(faiss.get_num_gpus())                   # 1
+**Verify GPU** (RTX rig / Colab):
+```bash
+uv run python -c "import torch, faiss; \
+  print(torch.cuda.get_device_name(0)); \
+  print('FAISS GPUs:', faiss.get_num_gpus())"
+# NVIDIA GeForce RTX 3060
+# FAISS GPUs: 1
 ```
 
 ---

@@ -69,21 +69,37 @@ docs/            SSOT.md, IMPLEMENTATION.md, agent-prompts/, papers/
 
 ## Quickstart
 
+ISLE-IR uses [`uv`](https://docs.astral.sh/uv/) for environment management.
+Install uv once, then run `setup.sh` — it creates `.venv` (Python 3.11, pinned
+in `.python-version`) and picks the GPU or CPU build automatically.
+
 ```bash
-# 1. Environment (Python 3.11 — newer versions lack faiss/cuml wheels)
-conda create -n isle python=3.11 -y
-conda activate isle
+# 1. Install uv (once per machine)
+curl -LsSf https://astral.sh/uv/install.sh | sh        # macOS / Linux / WSL
+#   Windows PowerShell:  irm https://astral.sh/uv/install.ps1 | iex
 
-# 2. PyTorch with CUDA (RTX rig); use the cpu wheel on machines without a GPU
-pip install torch --index-url https://download.pytorch.org/whl/cu118
+# 2. Set up the environment — picks GPU (Linux/WSL + NVIDIA) or CPU
+./setup.sh                       # or force it:  ./setup.sh gpu | ./setup.sh cpu
 
-# 3. Project dependencies + editable install (exposes the src/ packages)
-pip install -r requirements.txt
-pip install -e .
-
-# 4. Run the app (after the data + index phases — see docs/agent-prompts/)
-streamlit run src/app/main.py
+# 3. Run the app (after the data + index phases — see docs/agent-prompts/)
+uv run streamlit run src/app/main.py
 ```
+
+The two hardware variants — `uv sync` installs the project editable, so the
+`src/` packages import without any `PYTHONPATH` hack:
+
+```bash
+uv sync --extra gpu     # torch (CUDA 12.6) + faiss-gpu   — RTX rig, Google Colab
+uv sync --extra cpu     # torch (CPU / Apple MPS) + faiss-cpu — M4 Mac, Intel laptop
+```
+
+GPU mode is **Linux/WSL only** — `faiss-gpu-cu12` publishes Linux x86-64 wheels
+only, so on Windows and macOS `setup.sh` always selects `cpu` (and an explicit
+`./setup.sh gpu` there exits with an error).
+
+No `uv` on the machine? `pip install -r requirements-gpu.txt` (or
+`requirements-cpu.txt`) are uv-exported fallbacks; `uv.lock` is the source of
+truth for reproducible installs.
 
 Data and index artifacts (`corpus.parquet`, `embeddings.npy`, FAISS/BM25
 indexes) are **not** in git — they are distributed as GitHub Release assets.
