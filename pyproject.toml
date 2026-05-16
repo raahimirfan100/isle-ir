@@ -7,21 +7,107 @@ name = "isle-ir"
 version = "0.1.0"
 description = "Hybrid information retrieval with topic modeling and knowledge-graph exploration"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.14"
 license = { text = "MIT" }
 authors = [
     { name = "Abubakar Ahmed" },
     { name = "Raahim Irfan" },
     { name = "Mujtaba Kamran" },
 ]
-# Runtime dependencies are pinned in requirements.txt (the canonical install
-# list — it also carries the torch/faiss index-URL caveats). `pip install -e .`
-# only installs this package so the src/ modules import without a sys.path hack.
 
+# Platform-agnostic runtime dependencies (pure-Python or universal wheels).
+# PyTorch and FAISS are NOT here — they are hardware-specific and live in the
+# `cpu` / `gpu` extras below. Install with `uv sync --extra gpu` (CUDA rig /
+# Colab) or `uv sync --extra cpu` (Mac / Intel laptop). See README Quickstart.
+dependencies = [
+    # ── Data ingestion ──────────────────────────────────────────────────
+    "arxiv==2.1.3",
+    "pyalex>=0.21",          # OpenAlex client — free API key required since Feb 2026
+    "pandas>=2.0",
+    "pyarrow>=24.0.0",
+    "tqdm",
+    "requests",
+    "sickle",                # OAI-PMH bulk-harvest fallback
+    "numpy",
+    # ── Retrieval ───────────────────────────────────────────────────────
+    "bm25s[full]",           # pure-Python BM25 (arXiv:2407.03618)
+    "PyStemmer",             # stemming for bm25s
+    "sentence-transformers>=5.5.0",
+    "adapters",              # SPECTER2 loading (allenai/specter2_base + proximity adapter)
+    # ── Topic modeling ──────────────────────────────────────────────────
+    "bertopic>=0.16",
+    "umap-learn",
+    "hdbscan",
+    "scikit-learn>=1.4",
+    # ── Knowledge graph ─────────────────────────────────────────────────
+    "networkx>=3.3",
+    "pyvis>=0.3.2",
+    "streamlit-agraph",
+    # ── Frontend ────────────────────────────────────────────────────────
+    "streamlit>=1.57.0",
+    "plotly>=6.7.0",
+    # ── Evaluation ──────────────────────────────────────────────────────
+    "gensim>=4.3",
+]
+
+# Hardware-specific extras — pick exactly ONE. They are mutually exclusive
+# (see [tool.uv] conflicts). `torch` resolves from the matching PyTorch index
+# below; FAISS resolves to the CPU or CUDA wheel.
+[project.optional-dependencies]
+# CPU / Apple-Silicon machines (Mujtaba's M4, Abubakar's Intel laptop).
+# torch ships an MPS-enabled build on macOS automatically.
+cpu = [
+    "torch>=2.6",
+    "faiss-cpu>=1.9",
+]
+# NVIDIA CUDA machines (Raahim's RTX 3060 rig, Google Colab).
+# faiss-gpu-cu12 only publishes Linux x86-64 wheels — the marker keeps the
+# universal lockfile resolvable on every platform.
+gpu = [
+    "torch>=2.6 ; sys_platform == 'linux'",
+    "faiss-gpu-cu12>=1.10 ; sys_platform == 'linux' and platform_machine == 'x86_64'",
+]
+
+[dependency-groups]
+# Dev tooling — installed by `uv sync` by default, skipped with `--no-dev`.
+dev = [
+    "ruff",
+    "pytest",
+]
+
+# ── uv configuration ─────────────────────────────────────────────────────
+[tool.uv]
+# `cpu` and `gpu` cannot be installed together — they pull conflicting torch
+# builds. uv locks each variant separately in a single universal uv.lock.
+conflicts = [
+    [{ extra = "cpu" }, { extra = "gpu" }],
+]
+
+# Route `torch` to the right PyTorch index for the selected extra.
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu", extra = "cpu" },
+    { index = "pytorch-cu126", extra = "gpu" },
+]
+
+# `explicit = true` — these indexes are used ONLY for the packages mapped to
+# them above, never for general resolution.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+# ── Packaging ────────────────────────────────────────────────────────────
 [tool.setuptools.packages.find]
 where = ["src"]
 # Exposes app, retrieval, topics, graph, ingestion as importable top-level
-# packages — e.g. `from app.config import CORPUS_PATH`.
+# packages — e.g. `from app.config import CORPUS_PATH`. `uv sync` installs
+# this project in editable mode automatically (no separate `pip install -e .`).
 
 [tool.ruff]
 line-length = 100
