@@ -48,6 +48,32 @@ Do not copy SSOT / IMPLEMENTATION content into code or new docs — link to it.
 4. **Stay in your phase.** Work one phase at a time and satisfy its exit
    criteria before moving on.
 
+## Ownership & blocking
+
+Every module has one owner (`docs/SSOT.md` §2, `.github/CODEOWNERS`). Work only
+on modules owned by the teammate you are acting for — everyone contributes
+their own part, and outpacing the team is not progress.
+
+- **Do not implement another teammate's module**, even if doing so would
+  unblock you.
+- **Respect cross-phase dependencies.** Some work cannot start until a teammate
+  delivers — e.g. retrieval indexing needs Mujtaba's `corpus.parquet`; the
+  knowledge graph needs the topic-model output. `docs/SSOT.md` §7 marks the
+  hard dependencies.
+- **While waiting** you may still scaffold and unit-test your *own* module
+  against its contract on a small dummy input — that is your work, not theirs.
+- **When genuinely blocked** — your own available work is done and you need a
+  teammate's deliverable — open a GitHub issue, assign it to the owner, and
+  stop. Do not proceed into their code.
+
+  ```
+  gh issue create --title "Blocked: <what you need>" \
+    --body "<who / what / why, link the phase>" --assignee <github-handle>
+  ```
+
+  Handles: Abubakar `abubakar-ahmed-dev` · Raahim `raahimirfan100` ·
+  Mujtaba `Mujtaba-Kamran`.
+
 ## Git & commits
 
 Full workflow in `CONTRIBUTING.md`. The essentials for an agent:
