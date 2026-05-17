@@ -249,7 +249,7 @@ nvidia-nvjitlink-cu12==12.6.85 ; sys_platform == 'linux'
     #   nvidia-cusparse-cu12
 nvidia-nvshmem-cu12==3.4.5 ; sys_platform == 'linux'
     # via torch
-nvidia-nvtx-cu12==12.6.77 ; sys_platform == 'linux'
+nvidia-nvtx-cu12==12.9.79 ; sys_platform == 'linux'
     # via cuda-toolkit
 opt-einsum==3.4.0
     # via jax
