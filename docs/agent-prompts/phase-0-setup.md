@@ -10,39 +10,44 @@ Environment & Project Setup**.
 
 ## Read first
 - `AGENTS.md` and `CONTRIBUTING.md` — how to work here.
-- `docs/IMPLEMENTATION.md` §0 — environment setup.
+- `README.md` Quickstart and `docs/IMPLEMENTATION.md` §0 — environment setup.
 - `docs/SSOT.md` §5 (config) and §6 (contracts).
-- The `docs/IMPLEMENTATION.md` header — the embedding-model mismatch.
+- The `docs/IMPLEMENTATION.md` header — the embedding-model decision.
 
 ## Goal
 Get a working development environment, confirm the scaffold imports cleanly,
-and **lock the embedding-model team decision**.
+and **confirm the embedding-model team decision**.
 
 ## Steps
-1. Create the Python 3.11 conda env; install PyTorch (CUDA wheel on the RTX
-   rig, CPU wheel elsewhere), then `pip install -r requirements.txt` and
-   `pip install -e .`.
-2. Verify imports: `python -c "import app.config, retrieval.rrf, graph.builder"`.
-3. On the GPU machine, verify CUDA: `torch.cuda.is_available()` and
-   `faiss.get_num_gpus()`.
-4. **Verify the embedding model.** It is decided — SPECTER2
+1. Install **uv** (the project's package manager):
+   `curl -LsSf https://astral.sh/uv/install.sh | sh`.
+2. From the repo root, run `./setup.sh`. It detects your hardware and runs
+   `uv sync` with the right extra — `gpu` on Linux/WSL with an NVIDIA GPU,
+   `cpu` everywhere else (Mac, Intel, Colab). uv creates the `.venv`, installs
+   the locked dependencies, and installs the project itself editable — there
+   is no separate `pip install -e .`.
+3. Verify imports:
+   `uv run python -c "import app.config, retrieval.rrf, graph.builder"`.
+4. On the RTX rig only, verify the GPU: `torch.cuda.is_available()` is `True`
+   and `faiss.get_num_gpus()` is `1`. CPU machines skip this step.
+5. **Verify the embedding model.** It is decided — SPECTER2
    (`allenai/specter2_base`, 768-dim), already set in `src/app/config.py`.
-   Confirm it loads on the RTX rig (needs the `adapters` library) and yields
-   768-dim vectors.
-5. Register a free OpenAlex API key (https://openalex.org/api-key) and set
+   Confirm it loads (needs the `adapters` library, installed by `uv sync`) and
+   yields 768-dim vectors.
+6. Register a free OpenAlex API key (https://openalex.org/api-key) and set
    `OPENALEX_EMAIL` / `OPENALEX_API_KEY` in your environment.
-6. Create the `dev` branch off `main` if it does not exist; configure branch
-   protection on `main` and `dev` (1 review required) on GitHub.
 
 ## Exit criteria — verify every box before reporting done
-- [ ] `pip install -e .` succeeds; `import app.config` works from any directory.
-- [ ] `ruff check .` is clean.
-- [ ] GPU verified on the RTX rig (CUDA + FAISS see the GPU).
-- [ ] SPECTER2 (`allenai/specter2_base`) loads on the GPU and yields 768-dim
-      embeddings.
+- [ ] `./setup.sh` (or `uv sync`) succeeds; `uv run python -c "import app.config"`
+      works from any directory.
+- [ ] `uv run ruff check .` is clean.
+- [ ] GPU verified on the RTX rig (CUDA + FAISS see the GPU); CPU machines
+      confirm `uv sync --extra cpu` installed `torch` + `faiss-cpu`.
+- [ ] SPECTER2 (`allenai/specter2_base`) loads and yields 768-dim embeddings.
 - [ ] OpenAlex key registered and set in the environment.
-- [ ] `dev` branch exists; `main` and `dev` are protected.
+- [ ] `dev` branch exists; `main` and `dev` are protected (already configured
+      by the repo admin — nothing to do here).
 
 ## Commit & branch
-Conventional Commits, small logical commits. Config/doc changes:
-`chore(app): set embedding model` / `docs: reconcile embedding model`.
+Environment setup is per-machine and mostly local. Any config/doc tweak goes in
+small Conventional Commits, e.g. `docs: reconcile embedding model`.

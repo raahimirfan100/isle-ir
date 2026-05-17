@@ -159,10 +159,8 @@ The ISLE paper uses arXiv + OpenAlex. You have three options in increasing order
 The official Kaggle arXiv metadata dataset is the easiest bulk source.
 
 ```bash
-# Install Kaggle CLI
-pip install kaggle
-# Place your kaggle.json in ~/.kaggle/
-kaggle datasets download -d Cornell-University/arxiv
+# Place your kaggle.json in ~/.kaggle/, then run the CLI via uvx (no install)
+uvx kaggle datasets download -d Cornell-University/arxiv
 unzip arxiv.zip -d data/raw/
 ```
 
@@ -327,7 +325,7 @@ from pathlib import Path
 class BM25Index:
     def __init__(self, index_dir: str = "data/indexes/bm25"):
         self.index_dir = index_dir
-        self.stemmer = Stemmer.Stemmer("english")   # pip install PyStemmer
+        self.stemmer = Stemmer.Stemmer("english")   # `Stemmer` module → PyStemmer package
         self.retriever = None
         self.paper_ids = []
 
@@ -920,7 +918,6 @@ def export_pyvis(G: nx.DiGraph, output: str = "graph.html",
 **Option B — `streamlit-agraph` (inline in Streamlit, no file needed):**
 ```python
 from streamlit_agraph import agraph, Node, Edge, Config
-# pip install streamlit-agraph
 
 def render_agraph(G: nx.DiGraph, max_nodes: int = 200):
     nodes, edges = [], []
@@ -1186,24 +1183,28 @@ fig.write_html("evaluation/results/kg_degree_distribution.html")
 
 ### Libraries
 
-| Library | Role | Install | Key Docs / Source |
+All of these are declared in `pyproject.toml` and installed by `uv sync` — the
+`Install` column shows the upstream package name, not a step you run by hand
+(`torch` and `faiss` come from the `cpu` / `gpu` extras).
+
+| Library | Role | Package | Key Docs / Source |
 |---|---|---|---|
-| `arxiv` | arXiv REST API client | `pip install arxiv` | https://pypi.org/project/arxiv/ |
-| `sickle` | arXiv OAI-PMH bulk harvest | `pip install sickle` | https://sickle.readthedocs.io/ |
-| `pyalex` | OpenAlex API wrapper | `pip install pyalex` | https://github.com/J535D165/pyalex |
-| `bm25s` | Ultra-fast pure-Python BM25 | `pip install bm25s[full]` | https://github.com/xhluca/bm25s |
-| `sentence-transformers` | MiniLM-L6-v2 encoding | `pip install sentence-transformers` | https://www.sbert.net/ |
-| `faiss-gpu` | ANN vector search | `pip install faiss-gpu` | https://github.com/facebookresearch/faiss |
-| `bertopic` | Neural topic modeling | `pip install bertopic` | https://maartengr.github.io/BERTopic/ |
-| `umap-learn` | Dimensionality reduction for BERTopic | `pip install umap-learn` | https://umap-learn.readthedocs.io/ |
-| `hdbscan` | Density clustering for BERTopic | `pip install hdbscan` | https://hdbscan.readthedocs.io/ |
-| `scikit-learn` | NMF + TF-IDF | `pip install scikit-learn` | https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.NMF.html |
-| `gensim` | Coherence scoring only | `pip install gensim` | https://radimrehurek.com/gensim/models/coherencemodel.html |
-| `networkx` | Knowledge graph (in-memory) | `pip install networkx` | https://networkx.org/ |
-| `pyvis` | Interactive graph HTML export | `pip install pyvis` | https://pyvis.readthedocs.io/ |
-| `streamlit-agraph` | Inline graph in Streamlit | `pip install streamlit-agraph` | https://github.com/ChrisDelClea/streamlit-agraph |
-| `streamlit` | Frontend app | `pip install streamlit` | https://docs.streamlit.io/ |
-| `plotly` | Charts + BERTopic visualizations | `pip install plotly` | https://plotly.com/python/ |
+| `arxiv` | arXiv REST API client | `arxiv` | https://pypi.org/project/arxiv/ |
+| `sickle` | arXiv OAI-PMH bulk harvest | `sickle` | https://sickle.readthedocs.io/ |
+| `pyalex` | OpenAlex API wrapper | `pyalex` | https://github.com/J535D165/pyalex |
+| `bm25s` | Ultra-fast pure-Python BM25 | `bm25s[full]` | https://github.com/xhluca/bm25s |
+| `sentence-transformers` | SPECTER2 dense encoding (via `adapters`) | `sentence-transformers` | https://www.sbert.net/ |
+| `faiss` | ANN vector search | `faiss-gpu-cu12` (Linux GPU) / `faiss-cpu` | https://github.com/facebookresearch/faiss |
+| `bertopic` | Neural topic modeling | `bertopic` | https://maartengr.github.io/BERTopic/ |
+| `umap-learn` | Dimensionality reduction for BERTopic | `umap-learn` | https://umap-learn.readthedocs.io/ |
+| `hdbscan` | Density clustering for BERTopic | `hdbscan` | https://hdbscan.readthedocs.io/ |
+| `scikit-learn` | NMF + TF-IDF | `scikit-learn` | https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.NMF.html |
+| `gensim` | Coherence scoring only | `gensim` | https://radimrehurek.com/gensim/models/coherencemodel.html |
+| `networkx` | Knowledge graph (in-memory) | `networkx` | https://networkx.org/ |
+| `pyvis` | Interactive graph HTML export | `pyvis` | https://pyvis.readthedocs.io/ |
+| `streamlit-agraph` | Inline graph in Streamlit | `streamlit-agraph` | https://github.com/ChrisDelClea/streamlit-agraph |
+| `streamlit` | Frontend app | `streamlit` | https://docs.streamlit.io/ |
+| `plotly` | Charts + BERTopic visualizations | `plotly` | https://plotly.com/python/ |
 
 ### Papers
 
