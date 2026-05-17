@@ -1,20 +1,16 @@
 version: 2
-updates:
-  # Python dependencies — resolved against pyproject.toml + uv.lock.
-  # Direct deps only: transitive CUDA/cuDNN libraries (nvidia-*, cuda-bindings)
-  # are pinned by the torch cu126 wheel and must not be bumped independently.
-  - package-ecosystem: uv
-    directory: "/"
-    schedule:
-      interval: monthly
-    open-pull-requests-limit: 5
-    allow:
-      - dependency-type: "direct"
-    commit-message:
-      prefix: build
-      include: scope
 
-  # GitHub Actions used in workflows
+# Routine Python version updates are intentionally NOT configured here.
+# Dependabot's uv support walks the whole uv.lock and opens a PR for every
+# outdated package — including transitive CUDA/cuDNN libraries (nvidia-*,
+# cuda-*) that the torch cu126 wheel pins and that must not move on their own.
+# `allow: dependency-type: direct` did not suppress them. For a 5-week project
+# that churn is pure noise, so Python deps are bumped deliberately by hand.
+#
+# Security coverage is unaffected: Dependabot alerts and Dependabot security
+# updates are driven by GitHub advisories, not by this file.
+updates:
+  # GitHub Actions used in workflows — low-volume, worth keeping current.
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
