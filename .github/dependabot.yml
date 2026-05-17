@@ -1,11 +1,15 @@
 version: 2
 updates:
-  # Python dependencies — resolved against pyproject.toml + uv.lock
+  # Python dependencies — resolved against pyproject.toml + uv.lock.
+  # Direct deps only: transitive CUDA/cuDNN libraries (nvidia-*, cuda-bindings)
+  # are pinned by the torch cu126 wheel and must not be bumped independently.
   - package-ecosystem: uv
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
     open-pull-requests-limit: 5
+    allow:
+      - dependency-type: "direct"
     commit-message:
       prefix: build
       include: scope
@@ -14,6 +18,6 @@ updates:
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
     commit-message:
       prefix: ci
