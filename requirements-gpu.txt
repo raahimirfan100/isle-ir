@@ -395,7 +395,7 @@ sentence-transformers==5.5.0
     # via
     #   bertopic
     #   isle-ir
-setuptools==81.0.0
+setuptools==82.0.1
     # via torch
 sgmllib3k==1.0.0
     # via feedparser
