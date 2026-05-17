@@ -239,7 +239,7 @@ nvidia-cusparse-cu12==12.5.4.2 ; sys_platform == 'linux'
     #   nvidia-cusolver-cu12
 nvidia-cusparselt-cu12==0.7.1 ; sys_platform == 'linux'
     # via torch
-nvidia-nccl-cu12==2.29.3 ; sys_platform == 'linux'
+nvidia-nccl-cu12==2.30.4 ; sys_platform == 'linux'
     # via torch
 nvidia-nvjitlink-cu12==12.6.85 ; sys_platform == 'linux'
     # via
