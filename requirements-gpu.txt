@@ -60,7 +60,7 @@ colorama==0.4.6 ; sys_platform == 'win32'
     #   tqdm
 cryptography==48.0.0
     # via pyjwt
-cuda-bindings==12.9.6 ; sys_platform == 'linux'
+cuda-bindings==13.2.0 ; sys_platform == 'linux'
     # via torch
 cuda-pathfinder==1.5.4 ; sys_platform == 'linux'
     # via cuda-bindings
