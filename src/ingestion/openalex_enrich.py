@@ -13,7 +13,9 @@ it via OPENALEX_EMAIL / OPENALEX_API_KEY environment variables (config.py).
 from __future__ import annotations
 
 import json
+import logging
 import time
+from urllib.parse import quote
 
 import pandas as pd
 import pyalex
@@ -21,6 +23,15 @@ from pyalex import Works
 from tqdm import tqdm
 
 from app.config import CORPUS_PATH, DATA_RAW, OA_API_KEY, OA_EMAIL
+
+logger = logging.getLogger(__name__)
+
+_EMPTY_ENTRY = {
+    "cited_by_count": 0,
+    "institutions": [],
+    "countries": [],
+    "references": [],
+}
 
 
 def _cache_dir() -> str:
@@ -30,11 +41,28 @@ def _cache_dir() -> str:
 
 
 def _configure_pyalex() -> None:
+    if not OA_API_KEY:
+        raise ValueError(
+            "OPENALEX_API_KEY is not set. Register a free key at "
+            "https://openalex.org/api-key and export it in your environment."
+        )
     pyalex.config.email = OA_EMAIL
     pyalex.config.api_key = OA_API_KEY
     pyalex.config.max_retries = 3
     pyalex.config.retry_backoff_factor = 0.5
     pyalex.config.retry_http_codes = [429, 500, 503]
+
+
+def _normalize_work_id(raw: str) -> str:
+    """Extract bare OpenAlex work ID (e.g. 'W2964149567') from a URL or raw string."""
+    if raw.startswith("https://openalex.org/"):
+        return raw.rsplit("/", 1)[-1]
+    return raw
+
+
+def _cache_path(cache_dir: str, doi: str) -> str:
+    """Filesystem-safe cache path derived from the DOI."""
+    return f"{cache_dir}/{quote(doi, safe='')}.json"
 
 
 def enrich_batch(doi_list: list[str]) -> dict[str, dict]:
@@ -44,6 +72,10 @@ def enrich_batch(doi_list: list[str]) -> dict[str, dict]:
     which feed the corresponding Contract A columns (SSOT §6A). Responses are
     cached as JSON in data/raw/openalex_cache/ so re-runs skip already-fetched
     DOIs.
+
+    Confirmed "not found" DOIs are cached as empty results. Transient errors
+    (network, rate-limit) are logged and skipped — no cache file is written so
+    the next run will retry them automatically.
     """
     _configure_pyalex()
     cache_dir = _cache_dir()
@@ -53,7 +85,7 @@ def enrich_batch(doi_list: list[str]) -> dict[str, dict]:
         if not doi:
             continue
 
-        cache_file = f"{cache_dir}/{doi.replace('/', '_')}.json"
+        cache_file = _cache_path(cache_dir, doi)
         try:
             with open(cache_file) as f:
                 results[doi] = json.load(f)
@@ -63,17 +95,20 @@ def enrich_batch(doi_list: list[str]) -> dict[str, dict]:
 
         try:
             work = Works()[f"doi:{doi}"]
-        except Exception:
-            # DOI not found or API error — cache empty result
-            entry = {
-                "cited_by_count": 0,
-                "institutions": [],
-                "countries": [],
-                "references": [],
-            }
-            results[doi] = entry
-            with open(cache_file, "w") as f:
-                json.dump(entry, f)
+        except pyalex.api.APIError as exc:
+            # 404-equivalent: DOI genuinely not in OpenAlex — safe to cache.
+            status = getattr(getattr(exc, "response", None), "status_code", 0)
+            if status == 404 or "not found" in str(exc).lower():
+                results[doi] = dict(_EMPTY_ENTRY)
+                with open(cache_file, "w") as f:
+                    json.dump(_EMPTY_ENTRY, f)
+            else:
+                # Transient error — do NOT cache so the next run retries.
+                logger.warning("Transient error for DOI %s: %s", doi, exc)
+            continue
+        except Exception as exc:  # noqa: BLE001
+            # Network / unexpected error — skip without caching.
+            logger.warning("Skipping DOI %s due to error: %s", doi, exc)
             continue
 
         institutions: list[str] = []
@@ -87,11 +122,12 @@ def enrich_batch(doi_list: list[str]) -> dict[str, dict]:
                 if code:
                     countries.append(code)
 
+        raw_refs = work.get("referenced_works", [])
         entry = {
             "cited_by_count": work.get("cited_by_count", 0),
             "institutions": sorted(set(institutions)),
             "countries": sorted(set(countries)),
-            "references": work.get("referenced_works", []),
+            "references": [_normalize_work_id(r) for r in raw_refs],
         }
         results[doi] = entry
         with open(cache_file, "w") as f:
