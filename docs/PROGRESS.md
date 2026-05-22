@@ -4,14 +4,14 @@
 > session. It records *state*; the *plan* lives in `docs/SSOT.md`. Update the
 > phase table, the date, and the open items whenever state changes.
 
-**Last updated:** 2026-05-16 · **Stage:** Phase 0 in progress — environment & setup.
+**Last updated:** 2026-05-22 · **Stage:** Phase 0 complete (Mujtaba). Awaiting OpenAlex key.
 
 ## Phase status
 
 | Phase | Scope | Status |
 |---|---|---|
 | Bootstrap | repo scaffold, docs, CI, branch protection | done |
-| 0 — Setup | env, GPU, embedding-model decision | in progress |
+| 0 — Setup | env, GPU, embedding-model decision | done (Mujtaba) |
 | 1 — Data | arXiv + OpenAlex -> corpus.parquet | not started |
 | 2 — Retrieval | BM25 + FAISS + RRF + pipeline | not started |
 | 3 — Topics | NMF + BERTopic | not started |
@@ -57,5 +57,6 @@ only when its exit-criteria checklist is fully met.
 
 ## Open items
 
+- [ ] Mujtaba: register OpenAlex key at https://openalex.org/api-key and set `OPENALEX_EMAIL` + `OPENALEX_API_KEY` in environment.
 - [ ] After CI runs once, optionally add "Lint & syntax" as a required status check.
 - [ ] Delete the merged local `chore/repo-bootstrap` branch.
