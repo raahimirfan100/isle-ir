@@ -118,15 +118,18 @@ def validate_contract_a(df: pd.DataFrame) -> None:
     assert pd.api.types.is_integer_dtype(df["cited_by_count"]), "'cited_by_count' expected int"
 
     for col in ("authors", "categories", "institutions", "countries", "references"):
-        sample = df[col].dropna().head(1)
-        if len(sample) > 0:
-            assert isinstance(
-                sample.iloc[0], list
-            ), f"'{col}' expected list, got {type(sample.iloc[0])}"
+        non_null = df[col].dropna()
+        assert (non_null.apply(lambda v: isinstance(v, list))).all(), (
+            f"'{col}' has non-list values"
+        )
+        # Check element types on a sample (full scan is expensive).
+        for val in non_null.head(200):
+            assert all(isinstance(el, str) for el in val), (
+                f"'{col}' contains non-string elements"
+            )
 
-    sample = df.head(100)
-    mismatches = (sample["text"] != sample["title"] + " " + sample["abstract"]).sum()
-    assert mismatches == 0, f"text field mismatch in {mismatches}/100 rows"
+    mismatches = (df["text"] != df["title"] + " " + df["abstract"]).sum()
+    assert mismatches == 0, f"text field mismatch in {mismatches}/{len(df)} rows"
 
     for col in ("title", "abstract", "text"):
         assert not df[col].str.contains("\n", na=False).any(), f"'{col}' contains newlines"
