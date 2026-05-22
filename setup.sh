@@ -64,8 +64,9 @@ uv sync --extra "$EXTRA"
 # chflags once set — the files must be recreated.
 case "$(uname -s)" in
   Darwin*)
-    PTH_DIR=".venv/lib/python3.11/site-packages"
-    if [ -d "$PTH_DIR" ]; then
+    # Derive the actual site-packages path from the venv's Python.
+    PTH_DIR="$(.venv/bin/python -c "import site; print(site.getsitepackages()[0])" 2>/dev/null || true)"
+    if [ -n "$PTH_DIR" ] && [ -d "$PTH_DIR" ]; then
       for pth in "$PTH_DIR"/*.pth; do
         [ -f "$pth" ] || continue
         tmp="$(mktemp)"
