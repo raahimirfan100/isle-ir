@@ -131,6 +131,13 @@ uv sync --extra gpu              # RTX rig / Colab
 uv sync --extra cpu              # M4 Mac / Intel laptop
 ```
 
+**macOS pitfall:** On Apple Silicon, `uv` may set the `UF_HIDDEN` extended
+attribute on `.pth` files in `.venv`. Python 3.11+ checks this flag and skips
+those files, so `import app.config` fails with `ModuleNotFoundError`. If this
+happens, delete `.venv` and re-run `./setup.sh` — a fresh venv avoids the
+stale flag. The `setup.sh` script includes a safety-net that recreates affected
+`.pth` files automatically.
+
 **Verify GPU** (RTX rig / Colab):
 ```bash
 uv run python -c "import torch, faiss; \
