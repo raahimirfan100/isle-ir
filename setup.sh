@@ -58,6 +58,24 @@ esac
 echo "==> Installing ISLE-IR ($EXTRA) into .venv  —  uv sync --extra $EXTRA"
 uv sync --extra "$EXTRA"
 
+# On macOS, uv sets the UF_HIDDEN extended attribute on .pth files (and their
+# parent directory). Python 3.11+ checks stat.UF_HIDDEN and skips those files,
+# so src/ packages never become importable.  The flag cannot be cleared with
+# chflags once set — the files must be recreated.
+case "$(uname -s)" in
+  Darwin*)
+    PTH_DIR=".venv/lib/python3.11/site-packages"
+    if [ -d "$PTH_DIR" ]; then
+      for pth in "$PTH_DIR"/*.pth; do
+        [ -f "$pth" ] || continue
+        tmp="$(mktemp)"
+        cat "$pth" > "$tmp"
+        mv "$tmp" "$pth"
+      done
+      chflags nohidden "$PTH_DIR" 2>/dev/null || true
+    fi ;;
+esac
+
 # ── 4. Done ──────────────────────────────────────────────────────────────
 cat <<'EOF'
 
