@@ -160,10 +160,36 @@ class FAISSIndex:
             self.paper_ids = json.load(f)
         logger.info("Loaded FAISS index: %d vectors", self.index.ntotal)
 
+    def _encode_query(self, text: str) -> np.ndarray:
+        """Encode a single string to a normed 768-dim vector."""
+        import torch.nn.functional as F
+
+        self._load_model()
+        inputs = self._tokenizer(
+            text,
+            padding=True,
+            truncation=True,
+            max_length=512,
+            return_tensors="pt",
+        ).to(self._device)
+        with torch.no_grad():
+            outputs = self._model(**inputs)
+        vec = outputs.last_hidden_state[:, 0, :]
+        vec = F.normalize(vec, p=2, dim=1)
+        return vec.cpu().numpy().astype(np.float32)
+
     def search(self, query: str, top_k: int = 100) -> list[tuple[str, float]]:
         """Return [(arxiv_id, cosine_similarity), ...] sorted descending."""
-        # TODO(raahim, phase-2): encode query, search, drop -1 slots.
-        raise NotImplementedError
+        if self.index is None:
+            raise RuntimeError("Index not loaded. Call load() or build() first.")
+        self.index.nprobe = FAISS_NPROBE
+        query_vec = self._encode_query(query)
+        distances, indices = self.index.search(query_vec, top_k)
+        return [
+            (self.paper_ids[idx], float(dist))
+            for idx, dist in zip(indices[0], distances[0])
+            if idx != -1
+        ]
 
     def search_by_embedding(
         self, embedding: np.ndarray, top_k: int = 10
