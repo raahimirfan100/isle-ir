@@ -57,6 +57,8 @@ class FAISSIndex:
         self._model.set_active_adapters("proximity")
         self._model.to(self._device)
         self._model.eval()
+        if self._device == "cuda":
+            self._model = torch.compile(self._model, backend="inductor")
         logger.info("SPECTER2 loaded on %s", self._device)
 
     def _encode_corpus(
@@ -81,9 +83,14 @@ class FAISSIndex:
                 return_tensors="pt",
             ).to(self._device)
             with torch.no_grad():
-                outputs = self._model(**inputs)
+                with torch.autocast(
+                    device_type=self._device,
+                    dtype=torch.float16,
+                    enabled=(self._device == "cuda"),
+                ):
+                    outputs = self._model(**inputs)
             # CLS token — do not use mean pooling for SPECTER2
-            vecs = outputs.last_hidden_state[:, 0, :]
+            vecs = outputs.last_hidden_state[:, 0, :].float()
             vecs = F.normalize(vecs, p=2, dim=1)
             all_embeddings.append(vecs.cpu().numpy())
 
@@ -127,7 +134,7 @@ class FAISSIndex:
 
         return cpu_index
 
-    def build(self, papers: list[dict], batch_size: int = 128) -> None:
+    def build(self, papers: list[dict], batch_size: int = 256) -> None:
         """Encode papers and build + persist the FAISS index."""
         paper_ids, embeddings = self._encode_corpus(papers, batch_size)
         self._save_embeddings(paper_ids, embeddings)
@@ -174,8 +181,13 @@ class FAISSIndex:
             return_tensors="pt",
         ).to(self._device)
         with torch.no_grad():
-            outputs = self._model(**inputs)
-        vec = outputs.last_hidden_state[:, 0, :]
+            with torch.autocast(
+                device_type=self._device,
+                dtype=torch.float16,
+                enabled=(self._device == "cuda"),
+            ):
+                outputs = self._model(**inputs)
+        vec = outputs.last_hidden_state[:, 0, :].float()
         vec = F.normalize(vec, p=2, dim=1)
         return vec.cpu().numpy().astype(np.float32)
 
