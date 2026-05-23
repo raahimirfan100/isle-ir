@@ -89,10 +89,22 @@ class FAISSIndex:
 
         return paper_ids, np.vstack(all_embeddings).astype(np.float32)
 
+    def _save_embeddings(
+        self, paper_ids: list[str], embeddings: np.ndarray
+    ) -> None:
+        """Persist paper_ids and raw embeddings so BERTopic can reuse them."""
+        import json
+
+        FAISS_DIR.mkdir(parents=True, exist_ok=True)
+        np.save(FAISS_DIR / "embeddings.npy", embeddings)
+        with open(FAISS_DIR / "paper_ids.json", "w") as f:
+            json.dump(paper_ids, f)
+        logger.info("Saved %d embeddings to %s", len(paper_ids), FAISS_DIR)
+
     def build(self, papers: list[dict], batch_size: int = 128) -> None:
         """Encode papers and build + persist the FAISS index."""
         # TODO(raahim, phase-2): build IndexIVFFlat (train it before adding!);
-        #   persist vectors.index, paper_ids.json, embeddings.npy.
+        #   persist vectors.index.
         raise NotImplementedError
 
     def load(self) -> None:
