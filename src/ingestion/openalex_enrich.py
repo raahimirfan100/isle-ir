@@ -20,8 +20,8 @@ from urllib.parse import quote
 import pandas as pd
 import pyalex
 import requests
-from requests.adapters import HTTPAdapter
 from pyalex import Works
+from requests.adapters import HTTPAdapter
 from tqdm import tqdm
 from urllib3.util.retry import Retry
 
