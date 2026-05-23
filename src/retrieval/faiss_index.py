@@ -59,10 +59,40 @@ class FAISSIndex:
         self._model.eval()
         logger.info("SPECTER2 loaded on %s", self._device)
 
+    def _encode_corpus(
+        self, papers: list[dict], batch_size: int
+    ) -> tuple[list[str], np.ndarray]:
+        """Encode all papers; return (paper_ids, embeddings float32 L2-normed)."""
+        import torch.nn.functional as F
+        from tqdm import tqdm
+
+        self._load_model()
+        paper_ids: list[str] = [p["arxiv_id"] for p in papers]
+        texts = [f"{p['title']} {p['abstract']}" for p in papers]
+
+        all_embeddings: list[np.ndarray] = []
+        for start in tqdm(range(0, len(texts), batch_size), desc="Encoding"):
+            batch = texts[start : start + batch_size]
+            inputs = self._tokenizer(
+                batch,
+                padding=True,
+                truncation=True,
+                max_length=512,
+                return_tensors="pt",
+            ).to(self._device)
+            with torch.no_grad():
+                outputs = self._model(**inputs)
+            # CLS token — do not use mean pooling for SPECTER2
+            vecs = outputs.last_hidden_state[:, 0, :]
+            vecs = F.normalize(vecs, p=2, dim=1)
+            all_embeddings.append(vecs.cpu().numpy())
+
+        return paper_ids, np.vstack(all_embeddings).astype(np.float32)
+
     def build(self, papers: list[dict], batch_size: int = 128) -> None:
         """Encode papers and build + persist the FAISS index."""
-        # TODO(raahim, phase-2): batch-encode; build IndexIVFFlat (train it
-        #   before adding!); persist vectors.index, paper_ids.json, embeddings.npy.
+        # TODO(raahim, phase-2): build IndexIVFFlat (train it before adding!);
+        #   persist vectors.index, paper_ids.json, embeddings.npy.
         raise NotImplementedError
 
     def load(self) -> None:
