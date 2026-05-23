@@ -19,8 +19,11 @@ from urllib.parse import quote
 
 import pandas as pd
 import pyalex
+import requests
+from requests.adapters import HTTPAdapter
 from pyalex import Works
 from tqdm import tqdm
+from urllib3.util.retry import Retry
 
 from app.config import CORPUS_PATH, DATA_RAW, OA_API_KEY, OA_EMAIL
 
@@ -53,6 +56,13 @@ def _configure_pyalex() -> None:
     pyalex.config.retry_http_codes = [429, 500, 503]
 
 
+class _TimeoutAdapter(HTTPAdapter):
+    """HTTPAdapter that injects a 30-second timeout into every request."""
+    def send(self, request, **kwargs):
+        kwargs.setdefault("timeout", 30)
+        return super().send(request, **kwargs)
+
+
 def _normalize_work_id(raw: str) -> str:
     """Extract bare OpenAlex work ID (e.g. 'W2964149567') from a URL or raw string."""
     if raw.startswith("https://openalex.org/"):
@@ -78,6 +88,18 @@ def enrich_batch(doi_list: list[str]) -> dict[str, dict]:
     the next run will retry them automatically.
     """
     _configure_pyalex()
+
+    def _session_with_timeout() -> requests.Session:
+        s = requests.Session()
+        retries = Retry(
+            total=pyalex.config.max_retries,
+            backoff_factor=pyalex.config.retry_backoff_factor,
+            status_forcelist=pyalex.config.retry_http_codes,
+        )
+        s.mount("https://", _TimeoutAdapter(max_retries=retries))
+        return s
+
+    pyalex.api._get_requests_session = _session_with_timeout
     cache_dir = _cache_dir()
     results: dict[str, dict] = {}
 
@@ -95,9 +117,9 @@ def enrich_batch(doi_list: list[str]) -> dict[str, dict]:
 
         try:
             work = Works()[f"doi:{doi}"]
-        except pyalex.api.APIError as exc:
-            # 404-equivalent: DOI genuinely not in OpenAlex — safe to cache.
-            status = getattr(getattr(exc, "response", None), "status_code", 0)
+        except requests.exceptions.HTTPError as exc:
+            # 404: DOI genuinely not in OpenAlex — safe to cache.
+            status = exc.response.status_code if exc.response is not None else 0
             if status == 404 or "not found" in str(exc).lower():
                 results[doi] = dict(_EMPTY_ENTRY)
                 with open(cache_file, "w") as f:
