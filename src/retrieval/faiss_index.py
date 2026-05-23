@@ -141,8 +141,24 @@ class FAISSIndex:
 
     def load(self) -> None:
         """Load the persisted index from config.FAISS_DIR."""
-        # TODO(raahim, phase-2): read the index; optionally move it to GPU.
-        raise NotImplementedError
+        import json
+        import faiss
+
+        index_path = FAISS_DIR / "vectors.index"
+        ids_path = FAISS_DIR / "paper_ids.json"
+        if not index_path.exists() or not ids_path.exists():
+            raise FileNotFoundError(
+                f"FAISS index not found at {FAISS_DIR}. Run build() first."
+            )
+
+        self.index = faiss.read_index(str(index_path))
+        if self._device == "cuda" and faiss.get_num_gpus() > 0:
+            res = faiss.StandardGpuResources()
+            self.index = faiss.index_cpu_to_gpu(res, 0, self.index)
+
+        with open(ids_path) as f:
+            self.paper_ids = json.load(f)
+        logger.info("Loaded FAISS index: %d vectors", self.index.ntotal)
 
     def search(self, query: str, top_k: int = 100) -> list[tuple[str, float]]:
         """Return [(arxiv_id, cosine_similarity), ...] sorted descending."""
