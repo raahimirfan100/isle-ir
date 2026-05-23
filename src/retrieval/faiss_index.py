@@ -14,24 +14,97 @@ SentenceTransformer.
 
 from __future__ import annotations
 
+import logging
+
 import numpy as np
+import torch
+
+from app.config import EMBEDDING_DIM, EMBEDDING_MODEL, FAISS_DIR
+
+logger = logging.getLogger(__name__)
 
 
 class FAISSIndex:
     """Dense index. Contract C — the public signatures are fixed (SSOT §6C)."""
 
+    def __init__(self) -> None:
+        self._model = None
+        self._tokenizer = None
+        self.index = None
+        self.paper_ids: list[str] = []
+        self._device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    def _load_model(self) -> None:
+        """Load SPECTER2 base model and activate the proximity adapter."""
+        if self._model is not None:
+            return
+        from adapters import AutoAdapterModel
+        from transformers import AutoTokenizer
+
+        logger.info("Loading SPECTER2 base model from %s", EMBEDDING_MODEL)
+        self._tokenizer = AutoTokenizer.from_pretrained(EMBEDDING_MODEL)
+        self._model = AutoAdapterModel.from_pretrained(EMBEDDING_MODEL)
+
+        # Load the proximity adapter — must call set_active_adapters separately;
+        # set_active=True on load_adapter() alone does not engage the adapter
+        # for the forward pass (silent "no adapter activated" warning).
+        self._model.load_adapter(
+            "allenai/specter2",
+            source="hf",
+            load_as="proximity",
+            set_active=True,
+        )
+        self._model.set_active_adapters("proximity")
+        self._model.to(self._device)
+        self._model.eval()
+        logger.info("SPECTER2 loaded on %s", self._device)
+
+    def _encode_corpus(
+        self, papers: list[dict], batch_size: int
+    ) -> tuple[list[str], np.ndarray]:
+        """Encode all papers; return (paper_ids, embeddings float32 L2-normed)."""
+        import torch.nn.functional as F
+        from tqdm import tqdm
+
+        self._load_model()
+        paper_ids: list[str] = [p["arxiv_id"] for p in papers]
+        texts = [f"{p['title']} {p['abstract']}" for p in papers]
+
+        all_embeddings: list[np.ndarray] = []
+        for start in tqdm(range(0, len(texts), batch_size), desc="Encoding"):
+            batch = texts[start : start + batch_size]
+            inputs = self._tokenizer(
+                batch,
+                padding=True,
+                truncation=True,
+                max_length=512,
+                return_tensors="pt",
+            ).to(self._device)
+            with torch.no_grad():
+                outputs = self._model(**inputs)
+            # CLS token — do not use mean pooling for SPECTER2
+            vecs = outputs.last_hidden_state[:, 0, :]
+            vecs = F.normalize(vecs, p=2, dim=1)
+            all_embeddings.append(vecs.cpu().numpy())
+
+        return paper_ids, np.vstack(all_embeddings).astype(np.float32)
+
+    def _save_embeddings(
+        self, paper_ids: list[str], embeddings: np.ndarray
+    ) -> None:
+        """Persist paper_ids and raw embeddings so BERTopic can reuse them."""
+        import json
+
+        FAISS_DIR.mkdir(parents=True, exist_ok=True)
+        np.save(FAISS_DIR / "embeddings.npy", embeddings)
+        with open(FAISS_DIR / "paper_ids.json", "w") as f:
+            json.dump(paper_ids, f)
+        logger.info("Saved %d embeddings to %s", len(paper_ids), FAISS_DIR)
+
     def build(self, papers: list[dict], batch_size: int = 128) -> None:
         """Encode papers and build + persist the FAISS index."""
-        # TODO(raahim, phase-2): batch-encode; build IndexIVFFlat (train it
-        #   before adding!); persist vectors.index, paper_ids.json, embeddings.npy.
-        # NOTE: loading SPECTER2 — after
-        #   model.load_adapter("allenai/specter2", source="hf",
-        #                       load_as="proximity", set_active=True)
-        #   you must ALSO call model.set_active_adapters("proximity").
-        #   set_active=True on load_adapter() does not engage the adapter for
-        #   the forward pass (silent "no adapter activated" warning) — without
-        #   set_active_adapters() the vectors come from the un-adapted base
-        #   model. Doc embedding = last_hidden_state[:, 0, :] (the [CLS] token).
+        # TODO(raahim, phase-2): build IndexIVFFlat (train it before adding!);
+        #   persist vectors.index.
         raise NotImplementedError
 
     def load(self) -> None:
