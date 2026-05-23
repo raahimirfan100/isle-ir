@@ -15,8 +15,6 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from app.config import RRF_TOP_N, TOP_K_EACH
-
 if TYPE_CHECKING:
     from retrieval.bm25_index import BM25Index
     from retrieval.faiss_index import FAISSIndex

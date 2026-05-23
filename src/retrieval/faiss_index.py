@@ -101,7 +101,7 @@ class FAISSIndex:
             json.dump(paper_ids, f)
         logger.info("Saved %d embeddings to %s", len(paper_ids), FAISS_DIR)
 
-    def _build_ivf_index(self, embeddings: np.ndarray) -> "faiss.Index":
+    def _build_ivf_index(self, embeddings: np.ndarray):
         """Build an IVFFlat index, training on GPU if available."""
         import faiss
 
@@ -142,6 +142,7 @@ class FAISSIndex:
     def load(self) -> None:
         """Load the persisted index from config.FAISS_DIR."""
         import json
+
         import faiss
 
         index_path = FAISS_DIR / "vectors.index"
@@ -187,7 +188,7 @@ class FAISSIndex:
         distances, indices = self.index.search(query_vec, top_k)
         return [
             (self.paper_ids[idx], float(dist))
-            for idx, dist in zip(indices[0], distances[0])
+            for idx, dist in zip(indices[0], distances[0], strict=False)
             if idx != -1
         ]
 
@@ -206,6 +207,6 @@ class FAISSIndex:
         distances, indices = self.index.search(vec, top_k)
         return [
             (self.paper_ids[idx], float(dist))
-            for idx, dist in zip(indices[0], distances[0])
+            for idx, dist in zip(indices[0], distances[0], strict=False)
             if idx != -1
         ]
