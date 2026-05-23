@@ -133,8 +133,11 @@ class FAISSIndex:
         self._save_embeddings(paper_ids, embeddings)
         self.index = self._build_ivf_index(embeddings)
         self.paper_ids = paper_ids
-        # TODO(raahim, phase-2): persist vectors.index.
-        raise NotImplementedError
+
+        import faiss as _faiss
+        FAISS_DIR.mkdir(parents=True, exist_ok=True)
+        _faiss.write_index(self.index, str(FAISS_DIR / "vectors.index"))
+        logger.info("FAISS index saved to %s", FAISS_DIR / "vectors.index")
 
     def load(self) -> None:
         """Load the persisted index from config.FAISS_DIR."""
