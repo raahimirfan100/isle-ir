@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 
+import numpy as np
 import pandas as pd
 
 from app.config import CORPUS_PATH, DATA_PROCESSED
@@ -119,7 +120,7 @@ def validate_contract_a(df: pd.DataFrame) -> None:
 
     for col in ("authors", "categories", "institutions", "countries", "references"):
         non_null = df[col].dropna()
-        assert (non_null.apply(lambda v: isinstance(v, list))).all(), (
+        assert (non_null.apply(lambda v: isinstance(v, (list, np.ndarray)))).all(), (
             f"'{col}' has non-list values"
         )
         # Check element types on a sample (full scan is expensive).
