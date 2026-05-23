@@ -19,7 +19,7 @@ import logging
 import numpy as np
 import torch
 
-from app.config import EMBEDDING_DIM, EMBEDDING_MODEL, FAISS_DIR
+from app.config import EMBEDDING_DIM, EMBEDDING_MODEL, FAISS_DIR, FAISS_NLIST, FAISS_NPROBE
 
 logger = logging.getLogger(__name__)
 
@@ -101,16 +101,64 @@ class FAISSIndex:
             json.dump(paper_ids, f)
         logger.info("Saved %d embeddings to %s", len(paper_ids), FAISS_DIR)
 
+    def _build_ivf_index(self, embeddings: np.ndarray) -> "faiss.Index":
+        """Build an IVFFlat index, training on GPU if available."""
+        import faiss
+
+        n = len(embeddings)
+        # nlist: rule of thumb ≈ sqrt(N); config upper-bound is 1024
+        nlist = min(FAISS_NLIST, int(np.sqrt(n)))
+        quantizer = faiss.IndexFlatIP(EMBEDDING_DIM)
+        cpu_index = faiss.IndexIVFFlat(
+            quantizer, EMBEDDING_DIM, nlist, faiss.METRIC_INNER_PRODUCT
+        )
+
+        if self._device == "cuda" and faiss.get_num_gpus() > 0:
+            res = faiss.StandardGpuResources()
+            gpu_index = faiss.index_cpu_to_gpu(res, 0, cpu_index)
+            gpu_index.train(embeddings)
+            gpu_index.add(embeddings)
+            cpu_index = faiss.index_gpu_to_cpu(gpu_index)
+            logger.info("IVFFlat trained and populated on GPU (nlist=%d, n=%d)", nlist, n)
+        else:
+            cpu_index.train(embeddings)
+            cpu_index.add(embeddings)
+            logger.info("IVFFlat trained and populated on CPU (nlist=%d, n=%d)", nlist, n)
+
+        return cpu_index
+
     def build(self, papers: list[dict], batch_size: int = 128) -> None:
         """Encode papers and build + persist the FAISS index."""
-        # TODO(raahim, phase-2): build IndexIVFFlat (train it before adding!);
-        #   persist vectors.index.
-        raise NotImplementedError
+        paper_ids, embeddings = self._encode_corpus(papers, batch_size)
+        self._save_embeddings(paper_ids, embeddings)
+        self.index = self._build_ivf_index(embeddings)
+        self.paper_ids = paper_ids
+
+        import faiss as _faiss
+        FAISS_DIR.mkdir(parents=True, exist_ok=True)
+        _faiss.write_index(self.index, str(FAISS_DIR / "vectors.index"))
+        logger.info("FAISS index saved to %s", FAISS_DIR / "vectors.index")
 
     def load(self) -> None:
         """Load the persisted index from config.FAISS_DIR."""
-        # TODO(raahim, phase-2): read the index; optionally move it to GPU.
-        raise NotImplementedError
+        import json
+        import faiss
+
+        index_path = FAISS_DIR / "vectors.index"
+        ids_path = FAISS_DIR / "paper_ids.json"
+        if not index_path.exists() or not ids_path.exists():
+            raise FileNotFoundError(
+                f"FAISS index not found at {FAISS_DIR}. Run build() first."
+            )
+
+        self.index = faiss.read_index(str(index_path))
+        if self._device == "cuda" and faiss.get_num_gpus() > 0:
+            res = faiss.StandardGpuResources()
+            self.index = faiss.index_cpu_to_gpu(res, 0, self.index)
+
+        with open(ids_path) as f:
+            self.paper_ids = json.load(f)
+        logger.info("Loaded FAISS index: %d vectors", self.index.ntotal)
 
     def search(self, query: str, top_k: int = 100) -> list[tuple[str, float]]:
         """Return [(arxiv_id, cosine_similarity), ...] sorted descending."""
