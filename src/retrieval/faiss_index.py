@@ -194,6 +194,18 @@ class FAISSIndex:
     def search_by_embedding(
         self, embedding: np.ndarray, top_k: int = 10
     ) -> list[tuple[str, float]]:
-        """'More Like This' — nearest neighbours of a precomputed vector."""
-        # TODO(raahim, enhancement): powers the More Like This feature (SSOT §10).
-        raise NotImplementedError
+        """'More Like This' — nearest neighbours of a precomputed vector.
+
+        embedding: a 768-dim float32 array, already L2-normalised.
+        Powers the More Like This feature (SSOT §10).
+        """
+        if self.index is None:
+            raise RuntimeError("Index not loaded. Call load() or build() first.")
+        self.index.nprobe = FAISS_NPROBE
+        vec = embedding.reshape(1, -1).astype(np.float32)
+        distances, indices = self.index.search(vec, top_k)
+        return [
+            (self.paper_ids[idx], float(dist))
+            for idx, dist in zip(indices[0], distances[0])
+            if idx != -1
+        ]
