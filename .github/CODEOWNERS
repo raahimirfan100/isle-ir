@@ -13,6 +13,9 @@
 /src/topics/nmf_model.py          @abubakar-ahmed-dev
 /evaluation/                      @abubakar-ahmed-dev
 
+# config.py is shared (SSOT §5 "Owner: All") — override the /src/app/ pattern above
+/src/app/config.py                @raahimirfan100 @abubakar-ahmed-dev @Mujtaba-Kamran
+
 # Raahim — dense retrieval, reranker, pipeline, BERTopic, integration
 /src/retrieval/faiss_index.py     @raahimirfan100
 /src/retrieval/reranker.py        @raahimirfan100

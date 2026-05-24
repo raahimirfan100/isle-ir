@@ -23,6 +23,7 @@ DATA_PROCESSED = ROOT / "data" / "processed"
 CORPUS_PATH = DATA_PROCESSED / "corpus.parquet"
 BM25_DIR = ROOT / "data" / "indexes" / "bm25"
 FAISS_DIR = ROOT / "data" / "indexes" / "faiss"
+BERTOPIC_DIR = ROOT / "data" / "indexes" / "bertopic"
 EVAL_RESULTS_DIR = ROOT / "evaluation" / "results"
 
 # ── Embedding model — DECIDED: SPECTER2 ──────────────────────────────────
@@ -57,6 +58,19 @@ FAISS_NPROBE = 64
 BERTOPIC_MIN_CLUSTER = 15
 BERTOPIC_N_COMPONENTS = 5   # UMAP output dimensions
 BERTOPIC_N_NEIGHBORS = 15
+BERTOPIC_UMAP_MIN_DIST = 0.0      # 0.0 keeps tight clusters — BERTopic default
+BERTOPIC_UMAP_METRIC = "cosine"
+BERTOPIC_RANDOM_STATE = 42
+BERTOPIC_HDBSCAN_MIN_SAMPLES = 5
+BERTOPIC_HDBSCAN_METRIC = "euclidean"
+BERTOPIC_HDBSCAN_SELECTION = "eom"
+BERTOPIC_TOP_N_WORDS = 10
+BERTOPIC_MIN_DF = 3
+BERTOPIC_MAX_DF = 0.90
+BERTOPIC_NR_TOPICS: str | int = "auto"
+BERTOPIC_HDBSCAN_N_JOBS = -1              # use all CPU cores for core-dist computation
+BERTOPIC_HDBSCAN_APPROX_MST = True        # approximate MST — speedup, minor quality tradeoff
+BERTOPIC_HDBSCAN_ALGORITHM = "boruvka_kdtree"  # fastest for euclidean + low-dim (5-dim UMAP output)
 
 # ── NMF ──────────────────────────────────────────────────────────────────
 NMF_K_RANGE = range(5, 21)
