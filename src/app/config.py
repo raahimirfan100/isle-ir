@@ -23,6 +23,7 @@ DATA_PROCESSED = ROOT / "data" / "processed"
 CORPUS_PATH = DATA_PROCESSED / "corpus.parquet"
 BM25_DIR = ROOT / "data" / "indexes" / "bm25"
 FAISS_DIR = ROOT / "data" / "indexes" / "faiss"
+BERTOPIC_DIR = ROOT / "data" / "indexes" / "bertopic"
 EVAL_RESULTS_DIR = ROOT / "evaluation" / "results"
 
 # ── Embedding model — DECIDED: SPECTER2 ──────────────────────────────────
