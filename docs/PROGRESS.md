@@ -4,7 +4,7 @@
 > session. It records *state*; the *plan* lives in `docs/SSOT.md`. Update the
 > phase table, the date, and the open items whenever state changes.
 
-**Last updated:** 2026-05-24 · **Stage:** Phase 2 in progress — FAISS done (Raahim), BM25/RRF pending (Abubakar).
+**Last updated:** 2026-05-24 · **Stage:** Phase 2 in progress (BM25/RRF pending Abubakar); Phase 3 BERTopic done (Raahim).
 
 ## Phase status
 
@@ -14,7 +14,7 @@
 | 0 — Setup | env, GPU, embedding-model decision | done (Mujtaba) |
 | 1 — Data | arXiv + OpenAlex → corpus.parquet | done (Mujtaba) — 100k papers, enriched; `data-v2` release |
 | 2 — Retrieval | BM25 + FAISS + RRF + pipeline | in progress — FAISS ✅ (Raahim), BM25/RRF ⏳ (Abubakar), pipeline blocked |
-| 3 — Topics | NMF + BERTopic | not started |
+| 3 — Topics | NMF + BERTopic | in progress — BERTopic ✅ (Raahim, 657 topics C_V 0.6623), NMF ⏳ (Abubakar) |
 | 4 — Knowledge graph | builder + analytics + visualization | not started |
 | 5 — Frontend | Streamlit app | not started |
 | 6 — Evaluation | ablation, coherence, corpus stats | not started |
@@ -57,6 +57,6 @@ only when its exit-criteria checklist is fully met.
 - [ ] Abubakar: implement `bm25_index.py` (Contract B) — #34
 - [ ] Abubakar: implement `rrf.py` (Contract D) — #36
 - [ ] Raahim: wire `pipeline.py` once BM25/RRF land — #38
-- [ ] Raahim: implement `bertopic_model.py` — #40 (embeddings.npy ready in `faiss-index` release)
+- [x] Raahim: implement `bertopic_model.py` — #40 ✅ 657 topics, C_V 0.6623; model in `bertopic-index` release
 - [ ] Mujtaba: upload `corpus.parquet` to `data-v2` release — asset missing
 - [ ] After CI runs once, optionally add "Lint & syntax" as a required status check.
