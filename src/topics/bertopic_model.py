@@ -16,6 +16,8 @@ import logging
 
 import numpy as np
 from bertopic import BERTopic
+from gensim.corpora import Dictionary
+from gensim.models.coherencemodel import CoherenceModel
 from hdbscan import HDBSCAN
 from sklearn.feature_extraction.text import CountVectorizer
 from umap import UMAP
@@ -85,6 +87,26 @@ def _get_topic_info(topic_model: BERTopic) -> list[dict]:
     ]
 
 
+def _log_coherence(topic_info: list[dict], docs: list[str]) -> None:
+    """Log C_V coherence score via gensim. Side-effect only — not in the contract."""
+    try:
+        tokenised = [d.lower().split() for d in docs]
+        dictionary = Dictionary(tokenised)
+        keywords = [t["keywords"] for t in topic_info if t["keywords"]]
+        if not keywords:
+            return
+        cm = CoherenceModel(
+            topics=keywords,
+            texts=tokenised,
+            dictionary=dictionary,
+            coherence="c_v",
+        )
+        score = cm.get_coherence()
+        logger.info("BERTopic C_V coherence: %.4f", score)
+    except Exception:
+        logger.warning("Coherence scoring failed.", exc_info=True)
+
+
 def run_bertopic(
     docs: list[str], embeddings: np.ndarray
 ) -> tuple[list[dict], list[int], list[float]]:
@@ -114,6 +136,7 @@ def run_bertopic(
 
     topic_info = _get_topic_info(topic_model)
     logger.info("Discovered %d topics (excluding outliers).", len(topic_info))
+    _log_coherence(topic_info, docs)
 
     # probs is 2D [n_docs × n_topics] when calculate_probabilities=True;
     # take the max probability across topics as the per-doc confidence score.
