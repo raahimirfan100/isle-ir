@@ -58,6 +58,16 @@ FAISS_NPROBE = 64
 BERTOPIC_MIN_CLUSTER = 15
 BERTOPIC_N_COMPONENTS = 5   # UMAP output dimensions
 BERTOPIC_N_NEIGHBORS = 15
+BERTOPIC_UMAP_MIN_DIST = 0.0      # 0.0 keeps tight clusters — BERTopic default
+BERTOPIC_UMAP_METRIC = "cosine"
+BERTOPIC_RANDOM_STATE = 42
+BERTOPIC_HDBSCAN_MIN_SAMPLES = 5
+BERTOPIC_HDBSCAN_METRIC = "euclidean"
+BERTOPIC_HDBSCAN_SELECTION = "eom"
+BERTOPIC_TOP_N_WORDS = 10
+BERTOPIC_MIN_DF = 3
+BERTOPIC_MAX_DF = 0.90
+BERTOPIC_NR_TOPICS: str | int = "auto"
 
 # ── NMF ──────────────────────────────────────────────────────────────────
 NMF_K_RANGE = range(5, 21)
