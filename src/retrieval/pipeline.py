@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 
 from app.config import RERANK_TOP_K, RRF_TOP_N, TOP_K_EACH
 from retrieval.query_expansion import expand_query as _do_expand
+from retrieval.reranker import rerank as _rerank
 from retrieval.rrf import reciprocal_rank_fusion
 
 if TYPE_CHECKING:
@@ -48,7 +49,7 @@ def full_retrieval_pipeline(
     fused = reciprocal_rank_fusion(bm25_results, faiss_results)
     candidates = fused[:RRF_TOP_N]
 
-    # TODO(raahim, enhancement): if rerank, re-score candidates with cross-encoder
-    _ = rerank
+    if rerank and candidates:
+        return _rerank(query, candidates, papers_lookup, top_k=RERANK_TOP_K)
 
     return candidates[:RERANK_TOP_K]
