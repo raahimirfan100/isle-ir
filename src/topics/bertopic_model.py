@@ -24,9 +24,19 @@ from umap import UMAP
 
 from app.config import (
     BERTOPIC_DIR,
+    BERTOPIC_HDBSCAN_METRIC,
+    BERTOPIC_HDBSCAN_MIN_SAMPLES,
+    BERTOPIC_HDBSCAN_SELECTION,
+    BERTOPIC_MAX_DF,
     BERTOPIC_MIN_CLUSTER,
+    BERTOPIC_MIN_DF,
     BERTOPIC_N_COMPONENTS,
     BERTOPIC_N_NEIGHBORS,
+    BERTOPIC_NR_TOPICS,
+    BERTOPIC_RANDOM_STATE,
+    BERTOPIC_TOP_N_WORDS,
+    BERTOPIC_UMAP_METRIC,
+    BERTOPIC_UMAP_MIN_DIST,
 )
 
 logger = logging.getLogger(__name__)
@@ -37,32 +47,32 @@ def _build_bertopic_model() -> BERTopic:
     umap_model = UMAP(
         n_neighbors=BERTOPIC_N_NEIGHBORS,
         n_components=BERTOPIC_N_COMPONENTS,
-        min_dist=0.0,
-        metric="cosine",
-        random_state=42,
+        min_dist=BERTOPIC_UMAP_MIN_DIST,
+        metric=BERTOPIC_UMAP_METRIC,
+        random_state=BERTOPIC_RANDOM_STATE,
     )
 
     hdbscan_model = HDBSCAN(
         min_cluster_size=BERTOPIC_MIN_CLUSTER,
-        min_samples=5,
-        metric="euclidean",
-        cluster_selection_method="eom",
+        min_samples=BERTOPIC_HDBSCAN_MIN_SAMPLES,
+        metric=BERTOPIC_HDBSCAN_METRIC,
+        cluster_selection_method=BERTOPIC_HDBSCAN_SELECTION,
         prediction_data=True,
     )
 
     vectorizer = CountVectorizer(
         stop_words="english",
         ngram_range=(1, 2),
-        min_df=3,
-        max_df=0.90,
+        min_df=BERTOPIC_MIN_DF,
+        max_df=BERTOPIC_MAX_DF,
     )
 
     return BERTopic(
         umap_model=umap_model,
         hdbscan_model=hdbscan_model,
         vectorizer_model=vectorizer,
-        top_n_words=10,
-        nr_topics="auto",
+        top_n_words=BERTOPIC_TOP_N_WORDS,
+        nr_topics=BERTOPIC_NR_TOPICS,
         calculate_probabilities=True,
         verbose=True,
     )
@@ -72,19 +82,30 @@ def _get_topic_info(topic_model: BERTopic) -> list[dict]:
     """Map BERTopic's get_topic_info() DataFrame to Contract E shape.
 
     Outlier cluster -1 is excluded — downstream KG builder only processes
-    real topics.
+    real topics. Keywords are fetched via get_topic() to guarantee list[str]
+    regardless of BERTopic version; label falls back to a string when Name is
+    missing or NaN.
     """
     info = topic_model.get_topic_info()
-    return [
-        {
-            "topic_id": int(row["Topic"]),
-            "keywords": row["Representation"] if "Representation" in row else [],
-            "doc_count": int(row["Count"]),
-            "label": row.get("Name", f"Topic_{row['Topic']}"),
-        }
-        for _, row in info.iterrows()
-        if row["Topic"] != -1
-    ]
+    result = []
+    for _, row in info.iterrows():
+        topic_id = int(row["Topic"])
+        if topic_id == -1:
+            continue
+        # get_topic() returns [(word, score), ...] — always a list
+        word_score_pairs = topic_model.get_topic(topic_id) or []
+        keywords = [word for word, _score in word_score_pairs]
+        raw_label = row.get("Name", None)
+        label = str(raw_label) if raw_label and str(raw_label) != "nan" else f"Topic_{topic_id}"
+        result.append(
+            {
+                "topic_id": topic_id,
+                "keywords": keywords,
+                "doc_count": int(row["Count"]),
+                "label": label,
+            }
+        )
+    return result
 
 
 def _log_coherence(topic_info: list[dict], docs: list[str]) -> None:
@@ -138,10 +159,14 @@ def run_bertopic(
     logger.info("Discovered %d topics (excluding outliers).", len(topic_info))
     _log_coherence(topic_info, docs)
 
+    # Select the probability for each document's *assigned* topic.
     # probs is 2D [n_docs × n_topics] when calculate_probabilities=True;
-    # take the max probability across topics as the per-doc confidence score.
+    # column j corresponds to topic ID j. Outlier docs (topic == -1) get 0.0.
     if probs is not None and np.ndim(probs) == 2:
-        doc_probs: list[float] = probs.max(axis=1).tolist()
+        doc_probs: list[float] = [
+            float(probs[i, topics[i]]) if topics[i] != -1 else 0.0
+            for i in range(len(topics))
+        ]
     elif probs is not None:
         doc_probs = [float(p) for p in probs]
     else:
