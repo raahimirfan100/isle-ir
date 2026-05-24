@@ -31,7 +31,7 @@ only when its exit-criteria checklist is fully met.
 
 ## Infrastructure state
 
-- **Branches:** `main` — no force-push or deletion; direct pushes allowed (PR requirement removed). `dev` — direct merges allowed; no force-push or deletion. Feature work: `feat/<feature>` off `dev`.
+- **Branches:** `main` and `dev` — no force-push or deletion; direct pushes allowed on both. Feature work: `feat/<feature>` off `dev`.
 - **CI:** ruff lint + syntax + package-layout check on every PR and push.
 - **Dependabot:** weekly pip and GitHub Actions update PRs.
 - **Visibility:** private. Intended public after the project concludes — secret
@@ -45,7 +45,7 @@ only when its exit-criteria checklist is fully met.
 | MIT license | `LICENSE` |
 | Conventional Commits, no machine enforcement (no hooks) | `AGENTS.md` |
 | Branch names by feature, not developer | `CONTRIBUTING.md` |
-| `dev` accepts direct merges (no PR); `main` needs a PR but no review | `CONTRIBUTING.md`, SSOT §4 |
+| Both `dev` and `main` accept direct pushes; no PR required | `CONTRIBUTING.md`, SSOT §4 |
 | Embedding model: **SPECTER2** (`allenai/specter2_base`, 768-dim); MiniLM kept as comparison baseline | `src/app/config.py` |
 | Environment: **uv** (`uv.lock`, `cpu`/`gpu` extras) — conda dropped; PyTorch `cu126` + `faiss-gpu-cu12` | `pyproject.toml`, `setup.sh` |
 | No Claude git attribution; no `claude/*` branch names | team preference |
@@ -58,5 +58,6 @@ only when its exit-criteria checklist is fully met.
 - [ ] Abubakar: implement `rrf.py` (Contract D) — #36
 - [ ] Raahim: wire `pipeline.py` once BM25/RRF land — #38
 - [x] Raahim: implement `bertopic_model.py` — #40 ✅ 657 topics, C_V 0.6623; model in `bertopic-index` release
-- [ ] Mujtaba: upload `corpus.parquet` to `data-v2` release — asset missing
+- [x] Mujtaba: upload `corpus.parquet` to `data-v2` release ✅
+- [ ] Raahim: implement `reranker.py` — #52 (enhancement track, unblocked)
 - [ ] After CI runs once, optionally add "Lint & syntax" as a required status check.
