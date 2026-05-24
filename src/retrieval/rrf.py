@@ -13,14 +13,14 @@ from __future__ import annotations
 
 
 def reciprocal_rank_fusion(
-    ranked_lists: list[list[tuple[str, float]]],
+    *ranked_lists: list[tuple[str, float]],
     k: int = 60,
-    top_n: int = 50,
 ) -> list[tuple[str, float]]:
-    """Fuse ranked lists via RRF: ``score(d) = sum 1 / (k + rank(d))``.
+    """Returns merged [(arxiv_id, rrf_score), ...] sorted descending."""
 
-    Each input list is [(doc_id, score), ...] sorted by descending relevance.
-    Returns the top_n [(doc_id, rrf_score), ...]. Contract D (SSOT §6D).
-    """
-    # TODO(abubakar, phase-2): implement RRF; unit-test with dummy ranked lists.
-    raise NotImplementedError
+    scores: dict[str, float] = {}
+    for ranked_list in ranked_lists:
+        for rank, (doc_id, _score) in enumerate(ranked_list, start=1):
+            scores[doc_id] = scores.get(doc_id, 0.0) + 1.0 / (k + rank)
+
+    return sorted(scores.items(), key=lambda item: (-item[1], item[0]))
