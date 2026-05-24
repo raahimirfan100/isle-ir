@@ -74,6 +74,14 @@ BERTOPIC_HDBSCAN_ALGORITHM = "boruvka_kdtree"  # fastest for euclidean + low-dim
 
 # ── NMF ──────────────────────────────────────────────────────────────────
 NMF_K_RANGE = range(5, 21)
+NMF_TFIDF_MAX_FEATURES = 15_000
+NMF_TFIDF_MIN_DF = 2
+NMF_TFIDF_MAX_DF = 0.90
+NMF_RANDOM_STATE = 42
+NMF_MAX_ITER_SWEEP = 500
+NMF_MAX_ITER_FINAL = 1000
+NMF_INIT = "nndsvda"
+NMF_TOP_N_WORDS = 10
 
 # ── OpenAlex — free API key required since Feb 2026 ──────────────────────
 # Keep real credentials OUT of git. Set them in the environment (or a local

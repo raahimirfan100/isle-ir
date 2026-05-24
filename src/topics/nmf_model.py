@@ -16,10 +16,21 @@ import logging
 import numpy as np
 from gensim.corpora import Dictionary
 from gensim.models.coherencemodel import CoherenceModel
+from scipy.sparse import spmatrix
 from sklearn.decomposition import NMF
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-from app.config import NMF_K_RANGE
+from app.config import (
+    NMF_INIT,
+    NMF_K_RANGE,
+    NMF_MAX_ITER_FINAL,
+    NMF_MAX_ITER_SWEEP,
+    NMF_RANDOM_STATE,
+    NMF_TFIDF_MAX_DF,
+    NMF_TFIDF_MAX_FEATURES,
+    NMF_TFIDF_MIN_DF,
+    NMF_TOP_N_WORDS,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +39,12 @@ def _tokenize_docs(docs: list[str]) -> list[list[str]]:
     return [doc.lower().split() for doc in docs]
 
 
-def _build_tfidf_matrix(docs: list[str]) -> tuple[TfidfVectorizer, np.ndarray]:
+def _build_tfidf_matrix(docs: list[str]) -> tuple[TfidfVectorizer, spmatrix]:
     vectorizer = TfidfVectorizer(
-        max_features=15_000,
+        max_features=NMF_TFIDF_MAX_FEATURES,
         stop_words="english",
-        min_df=2,
-        max_df=0.90,
+        min_df=NMF_TFIDF_MIN_DF,
+        max_df=NMF_TFIDF_MAX_DF,
     )
     matrix = vectorizer.fit_transform(docs)
     return vectorizer, matrix
@@ -65,9 +76,14 @@ def find_optimal_k(docs: list[str], k_range: range = NMF_K_RANGE) -> int:
     best_score = float("-inf")
 
     for k in k_range:
-        model = NMF(n_components=k, random_state=42, max_iter=500, init="nndsvda")
+        model = NMF(
+            n_components=k,
+            random_state=NMF_RANDOM_STATE,
+            max_iter=NMF_MAX_ITER_SWEEP,
+            init=NMF_INIT,
+        )
         model.fit(matrix)
-        topics_words = _topic_keywords(model.components_, vocabulary)
+        topics_words = _topic_keywords(model.components_, vocabulary, top_n=NMF_TOP_N_WORDS)
         coherence = CoherenceModel(
             topics=topics_words,
             texts=tokenized,
@@ -102,7 +118,12 @@ def run_nmf(
     vectorizer, matrix = _build_tfidf_matrix(docs)
     vocabulary = vectorizer.get_feature_names_out()
 
-    model = NMF(n_components=n_topics, random_state=42, max_iter=1000, init="nndsvda")
+    model = NMF(
+        n_components=n_topics,
+        random_state=NMF_RANDOM_STATE,
+        max_iter=NMF_MAX_ITER_FINAL,
+        init=NMF_INIT,
+    )
     doc_topic_matrix = model.fit_transform(matrix)
 
     doc_topics = doc_topic_matrix.argmax(axis=1).tolist()
@@ -110,7 +131,7 @@ def run_nmf(
 
     topic_info: list[dict] = []
     for topic_id, row in enumerate(model.components_):
-        top_indices = row.argsort()[-10:][::-1]
+        top_indices = row.argsort()[-NMF_TOP_N_WORDS:][::-1]
         keywords = [str(vocabulary[index]) for index in top_indices]
         doc_count = int(sum(1 for assignment in doc_topics if assignment == topic_id))
         topic_info.append(

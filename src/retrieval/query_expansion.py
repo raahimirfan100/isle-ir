@@ -42,7 +42,7 @@ def _expand_tokens(tokens: list[str]) -> list[str]:
             expanded.append(token)
             seen.add(token)
 
-        for related in _RELATED_TERMS.get(token, ()): 
+        for related in _RELATED_TERMS.get(token, ()):
             if related not in seen:
                 expanded.append(related)
                 seen.add(related)

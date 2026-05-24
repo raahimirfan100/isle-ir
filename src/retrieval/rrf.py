@@ -11,10 +11,12 @@ SIGIR 2009). Course tie-in: Week 7 evaluation / rank aggregation.
 
 from __future__ import annotations
 
+from app.config import RRF_K
+
 
 def reciprocal_rank_fusion(
     *ranked_lists: list[tuple[str, float]],
-    k: int = 60,
+    k: int = RRF_K,
 ) -> list[tuple[str, float]]:
     """Returns merged [(arxiv_id, rrf_score), ...] sorted descending."""
 
