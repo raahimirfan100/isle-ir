@@ -24,8 +24,11 @@ from umap import UMAP
 
 from app.config import (
     BERTOPIC_DIR,
+    BERTOPIC_HDBSCAN_ALGORITHM,
+    BERTOPIC_HDBSCAN_APPROX_MST,
     BERTOPIC_HDBSCAN_METRIC,
     BERTOPIC_HDBSCAN_MIN_SAMPLES,
+    BERTOPIC_HDBSCAN_N_JOBS,
     BERTOPIC_HDBSCAN_SELECTION,
     BERTOPIC_MAX_DF,
     BERTOPIC_MIN_CLUSTER,
@@ -58,6 +61,9 @@ def _build_bertopic_model() -> BERTopic:
         metric=BERTOPIC_HDBSCAN_METRIC,
         cluster_selection_method=BERTOPIC_HDBSCAN_SELECTION,
         prediction_data=True,
+        core_dist_n_jobs=BERTOPIC_HDBSCAN_N_JOBS,
+        approx_min_span_tree=BERTOPIC_HDBSCAN_APPROX_MST,
+        algorithm=BERTOPIC_HDBSCAN_ALGORITHM,
     )
 
     vectorizer = CountVectorizer(
@@ -73,7 +79,7 @@ def _build_bertopic_model() -> BERTopic:
         vectorizer_model=vectorizer,
         top_n_words=BERTOPIC_TOP_N_WORDS,
         nr_topics=BERTOPIC_NR_TOPICS,
-        calculate_probabilities=True,
+        calculate_probabilities=False,
         verbose=True,
     )
 
@@ -159,17 +165,23 @@ def run_bertopic(
     logger.info("Discovered %d topics (excluding outliers).", len(topic_info))
     _log_coherence(topic_info, docs)
 
-    # Select the probability for each document's *assigned* topic.
-    # probs is 2D [n_docs × n_topics] when calculate_probabilities=True;
-    # column j corresponds to topic ID j. Outlier docs (topic == -1) get 0.0.
-    if probs is not None and np.ndim(probs) == 2:
+    # approximate_distribution uses a sliding token window over c-TF-IDF
+    # representations — far faster than HDBSCAN soft membership vectors.
+    # use_embedding_model=False avoids re-encoding; batch_size keeps RAM stable.
+    try:
+        topic_distr, _ = topic_model.approximate_distribution(
+            docs,
+            window=4,
+            stride=1,
+            batch_size=1000,
+            use_embedding_model=False,
+        )
         doc_probs: list[float] = [
-            float(probs[i, topics[i]]) if topics[i] != -1 else 0.0
+            float(topic_distr[i, topics[i]]) if topics[i] != -1 else 0.0
             for i in range(len(topics))
         ]
-    elif probs is not None:
-        doc_probs = [float(p) for p in probs]
-    else:
-        doc_probs = [0.0] * len(docs)
+    except Exception:
+        logger.warning("approximate_distribution failed; using uniform probs.", exc_info=True)
+        doc_probs = [1.0 if t != -1 else 0.0 for t in topics]
 
     return topic_info, list(topics), doc_probs

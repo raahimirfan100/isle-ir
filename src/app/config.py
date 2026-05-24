@@ -68,6 +68,9 @@ BERTOPIC_TOP_N_WORDS = 10
 BERTOPIC_MIN_DF = 3
 BERTOPIC_MAX_DF = 0.90
 BERTOPIC_NR_TOPICS: str | int = "auto"
+BERTOPIC_HDBSCAN_N_JOBS = -1              # use all CPU cores for core-dist computation
+BERTOPIC_HDBSCAN_APPROX_MST = True        # approximate MST — speedup, minor quality tradeoff
+BERTOPIC_HDBSCAN_ALGORITHM = "boruvka_kdtree"  # fastest for euclidean + low-dim (5-dim UMAP output)
 
 # ── NMF ──────────────────────────────────────────────────────────────────
 NMF_K_RANGE = range(5, 21)
