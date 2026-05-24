@@ -11,11 +11,97 @@ TF-IDF document representation + scikit-learn NMF. Course tie-in: Week 5
 
 from __future__ import annotations
 
+import logging
 
-def find_optimal_k(docs: list[str], k_range: range = range(5, 21)) -> int:
+import numpy as np
+from gensim.corpora import Dictionary
+from gensim.models.coherencemodel import CoherenceModel
+from scipy.sparse import spmatrix
+from sklearn.decomposition import NMF
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+from app.config import (
+    NMF_INIT,
+    NMF_K_RANGE,
+    NMF_MAX_ITER_FINAL,
+    NMF_MAX_ITER_SWEEP,
+    NMF_RANDOM_STATE,
+    NMF_TFIDF_MAX_DF,
+    NMF_TFIDF_MAX_FEATURES,
+    NMF_TFIDF_MIN_DF,
+    NMF_TOP_N_WORDS,
+)
+
+logger = logging.getLogger(__name__)
+
+
+def _tokenize_docs(docs: list[str]) -> list[list[str]]:
+    return [doc.lower().split() for doc in docs]
+
+
+def _build_tfidf_matrix(docs: list[str]) -> tuple[TfidfVectorizer, spmatrix]:
+    vectorizer = TfidfVectorizer(
+        max_features=NMF_TFIDF_MAX_FEATURES,
+        stop_words="english",
+        min_df=NMF_TFIDF_MIN_DF,
+        max_df=NMF_TFIDF_MAX_DF,
+    )
+    matrix = vectorizer.fit_transform(docs)
+    return vectorizer, matrix
+
+
+def _topic_keywords(
+    components: np.ndarray,
+    vocabulary: np.ndarray,
+    top_n: int = 10,
+) -> list[list[str]]:
+    topics: list[list[str]] = []
+    for row in components:
+        top_indices = row.argsort()[-top_n:][::-1]
+        topics.append([str(vocabulary[index]) for index in top_indices])
+    return topics
+
+
+def find_optimal_k(docs: list[str], k_range: range = NMF_K_RANGE) -> int:
     """Sweep k, return the value with the best c_v coherence (gensim)."""
-    # TODO(abubakar, phase-3): coherence sweep — see IMPLEMENTATION.md §3.1.
-    raise NotImplementedError
+    if not docs:
+        raise ValueError("docs must not be empty")
+
+    tokenized = _tokenize_docs(docs)
+    dictionary = Dictionary(tokenized)
+    vectorizer, matrix = _build_tfidf_matrix(docs)
+    vocabulary = vectorizer.get_feature_names_out()
+
+    best_k: int | None = None
+    best_score = float("-inf")
+
+    for k in k_range:
+        model = NMF(
+            n_components=k,
+            random_state=NMF_RANDOM_STATE,
+            max_iter=NMF_MAX_ITER_SWEEP,
+            init=NMF_INIT,
+        )
+        model.fit(matrix)
+        topics_words = _topic_keywords(model.components_, vocabulary, top_n=NMF_TOP_N_WORDS)
+        coherence = CoherenceModel(
+            topics=topics_words,
+            texts=tokenized,
+            dictionary=dictionary,
+            coherence="c_v",
+        )
+        score = float(coherence.get_coherence())
+        logger.info("NMF coherence k=%d c_v=%.4f", k, score)
+
+        if score > best_score:
+            best_k = k
+            best_score = score
+
+    if best_k is None:
+        raise RuntimeError("No valid k values were evaluated")
+
+    logger.info("Selected NMF k=%d with c_v=%.4f", best_k, best_score)
+    return best_k
 
 
 def run_nmf(
@@ -26,6 +112,35 @@ def run_nmf(
     topic_info: [{"topic_id", "keywords", "doc_count", "label"}, ...]
     doc_topics: one topic id per document. doc_probs: assigned-topic weight.
     """
-    # TODO(abubakar, phase-3): TF-IDF + NMF; emit the exact Contract E shape
-    #   so graph.builder can consume it unchanged.
-    raise NotImplementedError
+    if not docs:
+        raise ValueError("docs must not be empty")
+
+    vectorizer, matrix = _build_tfidf_matrix(docs)
+    vocabulary = vectorizer.get_feature_names_out()
+
+    model = NMF(
+        n_components=n_topics,
+        random_state=NMF_RANDOM_STATE,
+        max_iter=NMF_MAX_ITER_FINAL,
+        init=NMF_INIT,
+    )
+    doc_topic_matrix = model.fit_transform(matrix)
+
+    doc_topics = doc_topic_matrix.argmax(axis=1).tolist()
+    doc_probs = doc_topic_matrix.max(axis=1).tolist()
+
+    topic_info: list[dict] = []
+    for topic_id, row in enumerate(model.components_):
+        top_indices = row.argsort()[-NMF_TOP_N_WORDS:][::-1]
+        keywords = [str(vocabulary[index]) for index in top_indices]
+        doc_count = int(sum(1 for assignment in doc_topics if assignment == topic_id))
+        topic_info.append(
+            {
+                "topic_id": int(topic_id),
+                "keywords": keywords,
+                "doc_count": doc_count,
+                "label": ", ".join(keywords[:3]),
+            }
+        )
+
+    return topic_info, doc_topics, doc_probs
