@@ -16,6 +16,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from app.config import RERANK_TOP_K, RRF_TOP_N, TOP_K_EACH
+from retrieval.query_expansion import expand_query as _do_expand
 from retrieval.rrf import reciprocal_rank_fusion
 
 if TYPE_CHECKING:
@@ -38,16 +39,16 @@ def full_retrieval_pipeline(
     Contract D (SSOT §6D). Core: BM25 + FAISS → RRF.
     expand_query and rerank flags wire in the enhancement stages.
     """
-    bm25_results = bm25_index.search(query, top_k=TOP_K_EACH)
-    faiss_results = faiss_index.search(query, top_k=TOP_K_EACH)
+    search_query = _do_expand(query) if expand_query else query
+
+    bm25_results = bm25_index.search(search_query, top_k=TOP_K_EACH)
+    faiss_results = faiss_index.search(search_query, top_k=TOP_K_EACH)
     logger.debug("BM25: %d results, FAISS: %d results", len(bm25_results), len(faiss_results))
 
     fused = reciprocal_rank_fusion(bm25_results, faiss_results)
     candidates = fused[:RRF_TOP_N]
 
-    # TODO(raahim, enhancement): if expand_query, expand query before search
     # TODO(raahim, enhancement): if rerank, re-score candidates with cross-encoder
-    _ = expand_query
     _ = rerank
 
     return candidates[:RERANK_TOP_K]
