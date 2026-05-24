@@ -4,7 +4,7 @@
 > session. It records *state*; the *plan* lives in `docs/SSOT.md`. Update the
 > phase table, the date, and the open items whenever state changes.
 
-**Last updated:** 2026-05-24 · **Stage:** Phase 2 in progress (BM25/RRF pending Abubakar); Phase 3 BERTopic done (Raahim).
+**Last updated:** 2026-05-24 · **Stage:** Phase 2 in progress (BM25/RRF pending Abubakar, pipeline blocked, reranker ✅); Phase 3 BERTopic done (Raahim).
 
 ## Phase status
 
@@ -59,5 +59,5 @@ only when its exit-criteria checklist is fully met.
 - [ ] Raahim: wire `pipeline.py` once BM25/RRF land — #38
 - [x] Raahim: implement `bertopic_model.py` — #40 ✅ 657 topics, C_V 0.6623; model in `bertopic-index` release
 - [x] Mujtaba: upload `corpus.parquet` to `data-v2` release ✅
-- [ ] Raahim: implement `reranker.py` — #52 (enhancement track, unblocked)
+- [x] Raahim: implement `reranker.py` — #52 ✅ CrossEncoder lazy-load, 0.4s/50 pairs on GPU
 - [ ] After CI runs once, optionally add "Lint & syntax" as a required status check.
