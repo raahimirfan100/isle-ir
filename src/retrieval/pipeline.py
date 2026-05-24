@@ -15,6 +15,11 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from app.config import RERANK_TOP_K, RRF_TOP_N, TOP_K_EACH
+from retrieval.query_expansion import expand_query as _do_expand
+from retrieval.reranker import rerank as _rerank
+from retrieval.rrf import reciprocal_rank_fusion
+
 if TYPE_CHECKING:
     from retrieval.bm25_index import BM25Index
     from retrieval.faiss_index import FAISSIndex
@@ -32,22 +37,19 @@ def full_retrieval_pipeline(
 ) -> list[tuple[str, float]]:
     """Return the top-20 [(arxiv_id, final_score), ...] for ``query``.
 
-    Contract D (SSOT §6D). Core stages: BM25 + FAISS + RRF.
-    Enhancement stages (query expansion, cross-encoder rerank) are gated by
-    the boolean flags — pass expand_query=False, rerank=False until those
-    modules are ready (TODO items below).
+    Contract D (SSOT §6D). Core: BM25 + FAISS → RRF.
+    expand_query and rerank flags wire in the enhancement stages.
     """
-    # TODO(raahim, phase-2): wire BM25 + FAISS + RRF core stages.
-    #   bm25_index.search(query, top_k=TOP_K_EACH) → bm25_results
-    #   faiss_index.search(query, top_k=TOP_K_EACH) → faiss_results
-    #   from retrieval.rrf import reciprocal_rank_fusion
-    #   fused = reciprocal_rank_fusion([bm25_results, faiss_results], top_n=RRF_TOP_N)
-    #   return fused[:RERANK_TOP_K]
-    #
-    # TODO(raahim, enhancement): if expand_query, call query_expansion.expand()
-    #   first and pass expanded query to both indexes.
-    # TODO(raahim, enhancement): if rerank, pass fused results through
-    #   reranker.rerank(query, candidates, papers_lookup) before returning.
-    #
-    # Blocked on: Abubakar's bm25_index.py and rrf.py (SSOT §2).
-    raise NotImplementedError
+    search_query = _do_expand(query) if expand_query else query
+
+    bm25_results = bm25_index.search(search_query, top_k=TOP_K_EACH)
+    faiss_results = faiss_index.search(search_query, top_k=TOP_K_EACH)
+    logger.debug("BM25: %d results, FAISS: %d results", len(bm25_results), len(faiss_results))
+
+    fused = reciprocal_rank_fusion(bm25_results, faiss_results)
+    candidates = fused[:RRF_TOP_N]
+
+    if rerank and candidates:
+        return _rerank(query, candidates, papers_lookup, top_k=RERANK_TOP_K)
+
+    return candidates[:RERANK_TOP_K]
