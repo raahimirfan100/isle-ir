@@ -53,3 +53,4 @@ secrets.toml
 *.swp
 .DS_Store
 Thumbs.db
+archive.zip
