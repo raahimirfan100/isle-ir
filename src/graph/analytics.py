@@ -15,15 +15,74 @@ import networkx as nx
 
 
 def compute_paper_impact(G: nx.DiGraph) -> dict[str, int]:
-    """Citation in-degree per paper node (ISLE Eq. 19)."""
-    # TODO(mujtaba, phase-4): in-degree counted over `cites` edges only.
-    raise NotImplementedError
+    """Citation in-degree per paper node (ISLE Eq. 19).
+
+    Only counts ``cites`` edges (intra-corpus citations).
+    """
+    impact: dict[str, int] = {}
+    for node in G.nodes:
+        if G.nodes[node].get("node_type") != "paper":
+            continue
+        cites_count = sum(
+            1 for _, _, d in G.in_edges(node, data=True) if d.get("rel") == "cites"
+        )
+        impact[node] = cites_count
+    return impact
+
+
+def compute_entity_impact(G: nx.DiGraph, entity_type: str) -> dict[str, int]:
+    """Cumulative citation in-degree of associated papers (ISLE Eq. 20).
+
+    *entity_type* is one of ``"author"``, ``"institution"``, ``"country"``.
+    Author nodes have outgoing edges (author → paper), while institution
+    and country nodes have incoming edges (paper → entity). This function
+    traverses the correct direction for each type.
+    """
+    paper_impact = compute_paper_impact(G)
+    entity_impact: dict[str, int] = {}
+    for node, data in G.nodes(data=True):
+        if data.get("node_type") != entity_type:
+            continue
+        # Author → paper (outgoing); paper → institution/country (incoming)
+        if entity_type == "author":
+            neighbours = G.successors(node)
+        else:
+            neighbours = G.predecessors(node)
+        total = sum(
+            paper_impact.get(nbr, 0)
+            for nbr in neighbours
+            if G.nodes[nbr].get("node_type") == "paper"
+        )
+        entity_impact[node] = total
+    return entity_impact
+
+
+def top_papers_by_citation(
+    G: nx.DiGraph, n: int = 10
+) -> list[tuple[str, dict, int]]:
+    """Return the top-*n* papers by citation in-degree."""
+    paper_impact = compute_paper_impact(G)
+    sorted_papers = sorted(paper_impact.items(), key=lambda x: x[1], reverse=True)[:n]
+    return [(pid, G.nodes[pid], score) for pid, score in sorted_papers]
 
 
 def graph_summary(G: nx.DiGraph) -> dict:
     """Node/edge counts, per-type breakdown and density for the Analytics tab."""
-    # TODO(mujtaba, phase-4): summary stats.
-    raise NotImplementedError
+    node_types: dict[str, int] = {}
+    edge_rels: dict[str, int] = {}
+    for _, data in G.nodes(data=True):
+        t = data.get("node_type", "unknown")
+        node_types[t] = node_types.get(t, 0) + 1
+    for _, _, data in G.edges(data=True):
+        r = data.get("rel", "unknown")
+        edge_rels[r] = edge_rels.get(r, 0) + 1
+    return {
+        "total_nodes": G.number_of_nodes(),
+        "total_edges": G.number_of_edges(),
+        "node_types": node_types,
+        "edge_types": edge_rels,
+        "density": nx.density(G),
+    }
 
 
 # TODO(mujtaba, enhancement): add pagerank() over the citation subgraph
