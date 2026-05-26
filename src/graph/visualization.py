@@ -10,6 +10,9 @@ Renders the graph as interactive HTML (PyVis) or inline (streamlit-agraph).
 
 from __future__ import annotations
 
+import html
+import json
+
 import networkx as nx
 from pyvis.network import Network
 
@@ -43,17 +46,20 @@ def export_pyvis(
 
     for node, attrs in sub.nodes(data=True):
         ntype = attrs.get("node_type", "paper")
-        label = attrs.get("title", attrs.get("name", str(node)))[:40]
+        raw_label = attrs.get("title", attrs.get("name", str(node)))[:40]
+        label = html.escape(raw_label)
         tooltip = {k: v for k, v in attrs.items() if k != "abstract"}
         net.add_node(
             str(node),
             label=label,
             color=color_map.get(ntype, "#aaa"),
-            title=str(tooltip),
+            title=html.escape(json.dumps(tooltip, ensure_ascii=False)),
             size=NODE_TYPES.get(ntype, {}).get("size", 8),
         )
 
     for u, v, attrs in sub.edges(data=True):
-        net.add_edge(str(u), str(v), title=attrs.get("rel", ""))
+        net.add_edge(
+            str(u), str(v), title=html.escape(attrs.get("rel", ""))
+        )
 
     net.save_graph(output_path)
