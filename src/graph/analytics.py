@@ -34,17 +34,23 @@ def compute_entity_impact(G: nx.DiGraph, entity_type: str) -> dict[str, int]:
     """Cumulative citation in-degree of associated papers (ISLE Eq. 20).
 
     *entity_type* is one of ``"author"``, ``"institution"``, ``"country"``.
-    Sums the citation impact of every paper reachable from the entity via
-    outgoing edges (entity → paper).
+    Author nodes have outgoing edges (author → paper), while institution
+    and country nodes have incoming edges (paper → entity). This function
+    traverses the correct direction for each type.
     """
     paper_impact = compute_paper_impact(G)
     entity_impact: dict[str, int] = {}
     for node, data in G.nodes(data=True):
         if data.get("node_type") != entity_type:
             continue
+        # Author → paper (outgoing); paper → institution/country (incoming)
+        if entity_type == "author":
+            neighbours = G.successors(node)
+        else:
+            neighbours = G.predecessors(node)
         total = sum(
             paper_impact.get(nbr, 0)
-            for nbr in G.successors(node)
+            for nbr in neighbours
             if G.nodes[nbr].get("node_type") == "paper"
         )
         entity_impact[node] = total
