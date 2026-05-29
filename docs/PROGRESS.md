@@ -4,7 +4,7 @@
 > session. It records *state*; the *plan* lives in `docs/SSOT.md`. Update the
 > phase table, the date, and the open items whenever state changes.
 
-**Last updated:** 2026-05-24 · **Stage:** Phase 2 done; Phase 3 done (BERTopic + NMF). Phase 4 (KG) next.
+**Last updated:** 2026-05-29 · **Stage:** Phases 0–4 done. Phase 5 (Streamlit) in progress (Mujtaba). Phase 6 (Evaluation) next (Abubakar). Bonus features planned — see `docs/BONUS_FEATURES.md`.
 
 ## Phase status
 
@@ -13,11 +13,12 @@
 | Bootstrap | repo scaffold, docs, CI, branch protection | done |
 | 0 — Setup | env, GPU, embedding-model decision | done (Mujtaba) |
 | 1 — Data | arXiv + OpenAlex → corpus.parquet | done (Mujtaba) — 100k papers, enriched; `data-v2` release |
-| 2 — Retrieval | BM25 + FAISS + RRF + pipeline | done — FAISS ✅ BM25 ✅ RRF ✅ pipeline ✅ reranker ✅ |
-| 3 — Topics | NMF + BERTopic | in progress — BERTopic ✅ (Raahim, 657 topics C_V 0.6623), NMF ⏳ (Abubakar) |
-| 4 — Knowledge graph | builder + analytics + visualization | not started |
-| 5 — Frontend | Streamlit app | not started |
-| 6 — Evaluation | ablation, coherence, corpus stats | not started |
+| 2 — Retrieval | BM25 + FAISS + RRF + pipeline | done — FAISS ✅ BM25 ✅ RRF ✅ pipeline ✅ reranker ✅ query expansion ✅ |
+| 3 — Topics | NMF + BERTopic | done — BERTopic ✅ (Raahim, 657 topics C_V 0.6623), NMF ✅ (Abubakar) |
+| 4 — Knowledge graph | builder + analytics + collab network + visualization | done (Mujtaba) — PR #56 merged; builder ✅ analytics ✅ collab network ✅ PyVis ✅ PageRank ✅ |
+| 5 — Frontend | Streamlit app | in progress (Mujtaba) — main.py + all component stubs scaffolded, implementation pending |
+| 6 — Evaluation | ablation, coherence, corpus stats | not started (Abubakar) |
+| Bonus | MMR, Rocchio, UMAP viz, citation flow, freshness, paths, export | planned — see `docs/BONUS_FEATURES.md` |
 
 Each phase has a copy-paste prompt in `docs/agent-prompts/`. Mark a phase done
 only when its exit-criteria checklist is fully met.
@@ -54,10 +55,14 @@ only when its exit-criteria checklist is fully met.
 
 ## Open items
 
-- [ ] Abubakar: implement `bm25_index.py` (Contract B) — #34
-- [ ] Abubakar: implement `rrf.py` (Contract D) — #36
+- [x] Abubakar: implement `bm25_index.py` (Contract B) ✅
+- [x] Abubakar: implement `rrf.py` (Contract D) ✅
 - [x] Raahim: wire `pipeline.py` once BM25/RRF land — #38 ✅
 - [x] Raahim: implement `bertopic_model.py` — #40 ✅ 657 topics, C_V 0.6623; model in `bertopic-index` release
 - [x] Mujtaba: upload `corpus.parquet` to `data-v2` release ✅
 - [x] Raahim: implement `reranker.py` — #52 ✅ CrossEncoder lazy-load, 0.4s/50 pairs on GPU
-- [ ] After CI runs once, optionally add "Lint & syntax" as a required status check.
+- [x] Mujtaba: implement knowledge graph Phase 4 — PR #56 ✅
+- [ ] Mujtaba: implement Phase 5 Streamlit frontend (`main.py` + all component tabs)
+- [ ] Abubakar: Phase 6 — fill relevance labels, run ablation, corpus stats plots
+- [ ] Raahim: SPECTER2 vs MiniLM comparison study → report Section 8
+- [ ] All: bonus features — see `docs/BONUS_FEATURES.md` for full task list
