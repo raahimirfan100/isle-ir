@@ -83,6 +83,9 @@ NMF_MAX_ITER_FINAL = 1000
 NMF_INIT = "nndsvda"
 NMF_TOP_N_WORDS = 10
 
+# ── Freshness (bonus B-M1) ───────────────────────────────────────────────
+FRESHNESS_LAMBDA = 0.3
+
 # ── OpenAlex — free API key required since Feb 2026 ──────────────────────
 # Keep real credentials OUT of git. Set them in the environment (or a local
 # .env / .claude/settings.local.json, both gitignored). Register a free key
