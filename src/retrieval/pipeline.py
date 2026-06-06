@@ -34,6 +34,8 @@ def full_retrieval_pipeline(
     papers_lookup: dict[str, dict],
     expand_query: bool = True,
     rerank: bool = True,
+    freshness: bool = False,
+    freshness_lambda: float = 0.3,
 ) -> list[tuple[str, float]]:
     """Return the top-20 [(arxiv_id, final_score), ...] for ``query``.
 
