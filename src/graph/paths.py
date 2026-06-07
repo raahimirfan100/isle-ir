@@ -28,9 +28,12 @@ def find_citation_path(
     citation_sub = nx.DiGraph(cites_edges)
 
     try:
-        path = nx.shortest_path(citation_sub, source=source_id, target=target_id)
-        if len(path) - 1 <= max_hops:
-            return path
-        return None
+        path = nx.shortest_path(
+            citation_sub, source=source_id, target=target_id,
+        )
+        # Enforce hop limit: early exit if path exceeds max_hops.
+        if len(path) - 1 > max_hops:
+            return None
+        return path
     except (nx.NetworkXNoPath, nx.NodeNotFound):
         return None
