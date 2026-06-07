@@ -26,7 +26,7 @@ def estimate_decay_rates(
     Topics where recent papers get proportionally more citations → higher decay rate.
     Returns {topic_id: decay_rate} where decay_rate > 0.
     """
-    if topic_assignments_full[0] == -1 and all(t == -1 for t in topic_assignments_full):
+    if not topic_assignments_full or all(t == -1 for t in topic_assignments_full):
         # No real topic assignments — return uniform low decay
         return {}
 
