@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 import pandas as pd
@@ -78,6 +79,7 @@ def _get_cached_topic_assignments(df: pd.DataFrame) -> list[int]:
 
 def _render_collab_tab(collab_G) -> None:
     """Render the collaboration network tab."""
+    import os
     import tempfile
 
     from graph.collab_network import export_collab_pyvis, top_betweenness_authors
@@ -95,9 +97,13 @@ def _render_collab_tab(collab_G) -> None:
 
     tmp = tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode="w")
     tmp.close()
-    export_collab_pyvis(collab_G, output=tmp.name, max_nodes=200)
-    with open(tmp.name) as f:
-        st.components.v1.html(f.read(), height=700, scrolling=True)
+    try:
+        export_collab_pyvis(collab_G, output=tmp.name, max_nodes=200)
+        with open(tmp.name) as f:
+            st.components.v1.html(f.read(), height=700, scrolling=True)
+    finally:
+        if os.path.exists(tmp.name):
+            os.unlink(tmp.name)
 
 
 def _render_semantic_map_tab() -> None:
@@ -124,7 +130,9 @@ with st.spinner("Loading indexes and corpus…"):
     corpus_df = load_corpus()
     all_embeddings = load_embeddings()
 
-papers_lookup: dict[str, dict] = corpus_df.set_index("arxiv_id").to_dict("index")
+papers_lookup = cast(
+    dict[str, dict], corpus_df.set_index("arxiv_id").to_dict("index")
+)
 paper_ids_ordered: list[str] = corpus_df["arxiv_id"].tolist()
 
 # ── Sidebar ───────────────────────────────────────────────────────────────
@@ -183,9 +191,11 @@ if run_btn and query.strip():
             rerank=use_rerank,
         )
 
+        # Build pid → corpus-index lookup for downstream O(1) access
+        pid_to_idx = {pid: i for i, pid in enumerate(paper_ids_ordered)}
+
         # Freshness boost (B-M1)
         if use_freshness and results:
-            pid_to_idx = {pid: i for i, pid in enumerate(paper_ids_ordered)}
             topic_assignments_full = _get_cached_topic_assignments(corpus_df)
             decay_rates = estimate_decay_rates(
                 corpus_df, topic_assignments_full,
@@ -220,9 +230,9 @@ if run_btn and query.strip():
                     for p in result_papers
                 ]
                 subset_idxs = [
-                    paper_ids_ordered.index(pid)
+                    pid_to_idx[pid]
                     for pid in result_ids
-                    if pid in paper_ids_ordered
+                    if pid in pid_to_idx
                 ]
                 subset_embs = all_embeddings[subset_idxs]
                 predictions, _ = bertopic_model.transform(
@@ -235,10 +245,15 @@ if run_btn and query.strip():
                     if tid == -1:
                         continue
                     kw = bertopic_model.get_topic(tid)
+                    keywords = (
+                        [w for w, _ in kw]
+                        if isinstance(kw, (list, tuple))
+                        else []
+                    )
                     topic_info.append(
                         {
                             "topic_id": tid,
-                            "keywords": [w for w, _ in (kw or [])],
+                            "keywords": keywords,
                             "doc_count": int(row["Count"]),
                             "label": str(row.get("Name", f"Topic_{tid}")),
                         }
