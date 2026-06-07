@@ -79,9 +79,12 @@ def _render_path_explorer(G: nx.DiGraph, result_papers: list[dict]) -> None:
     display_titles: list[str] = []
     for p in result_papers:
         title = p.get("title", "Untitled")
+        arxiv_id = p["arxiv_id"]
         short = title if len(title) <= 60 else title[:60] + "..."
-        title_to_id[short] = p["arxiv_id"]
-        display_titles.append(short)
+        # Deduplicate: append arxiv_id suffix to avoid key collisions.
+        unique_key = f"{short}  [{arxiv_id}]"
+        title_to_id[unique_key] = arxiv_id
+        display_titles.append(unique_key)
 
     col_a, col_b = st.columns(2)
     sel_a = col_a.selectbox("From paper", display_titles, key="path_from")
