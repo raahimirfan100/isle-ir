@@ -48,9 +48,9 @@ def render(
     """
     # -- Initialise session-state keys for Rocchio feedback ---------------
     if "rel_ids" not in st.session_state:
-        st.session_state["rel_ids"]: list[str] = []
+        st.session_state["rel_ids"] = []
     if "nrel_ids" not in st.session_state:
-        st.session_state["nrel_ids"]: list[str] = []
+        st.session_state["nrel_ids"] = []
 
     # -- Empty-results guard ------------------------------------------------
     if not results or not result_papers:
