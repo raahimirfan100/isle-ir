@@ -148,12 +148,6 @@ paper_ids_ordered: list[str] = corpus_df["arxiv_id"].tolist()
 # ── Sidebar ───────────────────────────────────────────────────────────────
 
 with st.sidebar:
-    st.header("Search")
-
-    query = st.text_input(
-        "Query", placeholder="e.g. transformer attention mechanism NLP"
-    )
-
     use_expand = st.toggle(
         "Query expansion", value=True,
         help="WordNet synonyms + pseudo-relevance feedback",
@@ -186,7 +180,14 @@ with st.sidebar:
         disabled="query_emb" not in st.session_state,
     )
 
-    run_btn = st.button("🔍 Search", type="primary", use_container_width=True)
+    st.divider()
+    with st.form("search_form"):
+        query = st.text_input(
+            "Query", placeholder="e.g. transformer attention mechanism NLP"
+        )
+        run_btn = st.form_submit_button(
+            "🔍 Search", type="primary", use_container_width=True
+        )
 
 # ── Search execution (cached in session state) ─────────────────────────────
 

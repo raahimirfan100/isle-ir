@@ -81,6 +81,7 @@ def render(G: nx.DiGraph, result_df=None) -> None:
     # ── Top cited papers table ────────────────────────────────────────
     st.subheader("Top cited papers")
     top_papers = top_papers_by_citation(G, n=10)
+    top_papers = [(pid, attrs, c) for pid, attrs, c in top_papers if c > 0]
     if top_papers:
         rows = []
         for pid, attrs, citations in top_papers:

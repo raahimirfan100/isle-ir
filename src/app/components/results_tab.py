@@ -112,7 +112,8 @@ def render(
             st.markdown(f"**RRF Score:** {score:.4f}")
             if display_abstract:
                 st.markdown(f"**Abstract:** {display_abstract}")
-            st.markdown(f"**Cited by:** {cited_by}")
+            cited_display = str(int(cited_by)) if cited_by else "—"
+            st.markdown(f"**Cited by:** {cited_display}")
 
         # -- Rocchio feedback buttons --------------------------------------
         rel_col, nrel_col = st.columns([1, 1])
