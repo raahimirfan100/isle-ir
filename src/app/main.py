@@ -193,8 +193,11 @@ with st.sidebar:
 
 if run_btn and query.strip():
     with st.spinner("Running hybrid retrieval…"):
+        import time as _time
+
         from retrieval.freshness import apply_freshness, estimate_decay_rates
 
+        _t0 = _time.perf_counter()
         results = full_retrieval_pipeline(
             query,
             bm25_index,
@@ -203,6 +206,7 @@ if run_btn and query.strip():
             expand_query=use_expand,
             rerank=use_rerank,
         )
+        _retrieval_ms = (_time.perf_counter() - _t0) * 1000
 
         # Build pid → corpus-index lookup for downstream O(1) access
         pid_to_idx = {pid: i for i, pid in enumerate(paper_ids_ordered)}
@@ -248,12 +252,31 @@ if run_btn and query.strip():
         result_df = corpus_df[corpus_df["arxiv_id"].isin(result_ids)].copy()
         result_df["_score"] = result_df["arxiv_id"].map(dict(results))
 
+        # ILD@10: mean pairwise cosine distance of top-10 result embeddings
+        _ild10: float | None = None
+        if len(result_ids) >= 2:
+            _k = min(10, len(result_ids))
+            _top_idxs = [pid_to_idx[pid] for pid in result_ids[:_k] if pid in pid_to_idx]
+            if len(_top_idxs) >= 2:
+                _e = all_embeddings[_top_idxs]  # (k, 768) L2-normalised
+                _sims = _e @ _e.T               # cosine sims via dot product
+                _pairs = _k * (_k - 1) / 2
+                _ild10 = float(
+                    (2.0 / (_k * (_k - 1))) * (_pairs - (_sims - np.eye(_k)).sum() / 2)
+                )
+                # simpler: mean of upper-triangle distances
+                _ild10 = float(
+                    np.sum(np.triu(1.0 - _sims, k=1)) * (2.0 / (_k * (_k - 1)))
+                )
+
         # Topic modeling on retrieved set
         topic_info = []
         doc_topics = []
         doc_probs = []
+        _topics_ms: float | None = None
         bertopic_model = load_bertopic_model()
         if bertopic_model and len(result_papers) >= 5:
+            _tt0 = _time.perf_counter()
             with st.spinner("Running BERTopic on results…"):
                 docs = [
                     p.get("text", f"{p['title']} {p['abstract']}")
@@ -308,10 +331,13 @@ if run_btn and query.strip():
                     doc_probs = [
                         1.0 if t != -1 else 0.0 for t in doc_topics
                     ]
+            _topics_ms = (_time.perf_counter() - _tt0) * 1000
 
         # Knowledge graph
+        _graph_ms: float | None = None
         G = None
         if result_papers and topic_info:
+            _gt0 = _time.perf_counter()
             with st.spinner("Building knowledge graph…"):
                 from graph.builder import build_knowledge_graph
 
@@ -323,6 +349,7 @@ if run_btn and query.strip():
                 G = build_knowledge_graph(
                     result_papers, topics_for_kg, probs_for_kg, topic_info,
                 )
+            _graph_ms = (_time.perf_counter() - _gt0) * 1000
 
         # Collaboration network
         collab_G = None
@@ -340,6 +367,12 @@ if run_btn and query.strip():
         st.session_state["doc_topics"] = doc_topics
         st.session_state["doc_probs"] = doc_probs
         st.session_state["G"] = G
+        st.session_state["ild10"] = _ild10
+        st.session_state["latency_ms"] = {
+            "retrieval": _retrieval_ms,
+            "topics": _topics_ms,
+            "graph": _graph_ms,
+        }
         st.session_state["collab_G"] = collab_G
         st.session_state["query"] = query
 
