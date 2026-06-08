@@ -86,6 +86,15 @@ NMF_TOP_N_WORDS = 10
 # ── Freshness (bonus B-M1) ───────────────────────────────────────────────
 FRESHNESS_LAMBDA = 0.3
 
+# ── MMR diversity re-ranking (bonus B-R1) ────────────────────────────────
+MMR_LAMBDA = 0.5   # 1.0 = pure relevance, 0.0 = pure diversity
+MMR_TOP_K = 20
+
+# ── Rocchio relevance feedback (bonus B-A1) ──────────────────────────────
+ROCCHIO_ALPHA = 1.0
+ROCCHIO_BETA = 0.75
+ROCCHIO_GAMMA = 0.15
+
 # ── OpenAlex — free API key required since Feb 2026 ──────────────────────
 # Keep real credentials OUT of git. Set them in the environment (or a local
 # .env / .claude/settings.local.json, both gitignored). Register a free key
