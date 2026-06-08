@@ -5,7 +5,7 @@ Phase:   6 — Evaluation (SSOT §11)
 STATUS:  core
 
 Runs the five system variants over evaluation/test_queries.json and writes
-evaluation/results/ablation_table.csv with P@5, P@10, MRR and MAP.
+evaluation/results/ablation_table.csv with P@5, P@10, MRR, MAP and ILD@10.
 
 Variants (SSOT §11):
   1. BM25 only
@@ -20,9 +20,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
-from app.config import CORPUS_PATH, EVAL_RESULTS_DIR, RERANK_TOP_K
+from app.config import CORPUS_PATH, EVAL_RESULTS_DIR, FAISS_DIR, RERANK_TOP_K
 from retrieval.bm25_index import BM25Index
 from retrieval.faiss_index import FAISSIndex
 from retrieval.pipeline import full_retrieval_pipeline
@@ -55,6 +56,36 @@ def _reciprocal_rank(ranked_ids: list[str], relevant_ids: set[str]) -> float:
   return 0.0
 
 
+def _ild_at_k(
+  ranked_ids: list[str],
+  pid_to_idx: dict[str, int],
+  embeddings: np.ndarray,
+  k: int = 10,
+) -> float:
+  """Intra-List Diversity at k — mean pairwise cosine distance in embedding space.
+
+  ILD@k = (2 / k(k−1)) · Σ_{i<j} (1 − cosine_sim(emb_i, emb_j))
+  """
+  ids = [pid for pid in ranked_ids[:k] if pid in pid_to_idx]
+  n = len(ids)
+  if n < 2:
+    return 0.0
+
+  vecs = np.array([embeddings[pid_to_idx[pid]] for pid in ids], dtype=np.float32)
+  norms = np.linalg.norm(vecs, axis=1, keepdims=True)
+  norms = np.where(norms == 0, 1.0, norms)
+  vecs = vecs / norms
+
+  total = 0.0
+  pairs = 0
+  for i in range(n):
+    for j in range(i + 1, n):
+      total += 1.0 - float(np.dot(vecs[i], vecs[j]))
+      pairs += 1
+
+  return total / pairs if pairs else 0.0
+
+
 def _average_precision(ranked_ids: list[str], relevant_ids: set[str]) -> float:
   if not relevant_ids:
     return 0.0
@@ -73,11 +104,14 @@ def _evaluate_variant(
   query_rows: list[dict],
   variant_name: str,
   ranker,
+  pid_to_idx: dict[str, int] | None = None,
+  embeddings: np.ndarray | None = None,
 ) -> dict[str, float | str]:
   p5_scores: list[float] = []
   p10_scores: list[float] = []
   mrr_scores: list[float] = []
   map_scores: list[float] = []
+  ild_scores: list[float] = []
 
   for query_row in query_rows:
     relevant_ids = set(query_row["relevant"])
@@ -87,14 +121,19 @@ def _evaluate_variant(
     p10_scores.append(_precision_at_k(ranked_ids, relevant_ids, 10))
     mrr_scores.append(_reciprocal_rank(ranked_ids, relevant_ids))
     map_scores.append(_average_precision(ranked_ids, relevant_ids))
+    if pid_to_idx is not None and embeddings is not None:
+      ild_scores.append(_ild_at_k(ranked_ids, pid_to_idx, embeddings, k=10))
 
-  return {
+  row: dict[str, float | str] = {
     "System": variant_name,
     "P@5": sum(p5_scores) / len(p5_scores),
     "P@10": sum(p10_scores) / len(p10_scores),
     "MRR": sum(mrr_scores) / len(mrr_scores),
     "MAP": sum(map_scores) / len(map_scores),
   }
+  if ild_scores:
+    row["ILD@10"] = sum(ild_scores) / len(ild_scores)
+  return row
 
 
 def run_ablation() -> None:
@@ -110,6 +149,19 @@ def run_ablation() -> None:
 
   faiss_index = FAISSIndex()
   faiss_index.load()
+
+  # Load embeddings for ILD metric (B-A2)
+  embeddings_path = FAISS_DIR / "embeddings.npy"
+  embeddings: np.ndarray | None = None
+  pid_to_idx: dict[str, int] | None = None
+  if embeddings_path.exists():
+    embeddings = np.load(str(embeddings_path))
+    paper_ids_path = FAISS_DIR / "paper_ids.json"
+    if paper_ids_path.exists():
+      import json as _json
+      with paper_ids_path.open() as f:
+        paper_ids = _json.load(f)
+      pid_to_idx = {pid: i for i, pid in enumerate(paper_ids)}
 
   variant_runners = [
     ("BM25 only", lambda query: [pid for pid, _ in bm25_index.search(query, top_k=EVAL_TOP_K)]),
@@ -159,7 +211,7 @@ def run_ablation() -> None:
   ]
 
   rows = [
-    _evaluate_variant(query_rows, variant_name, ranker)
+    _evaluate_variant(query_rows, variant_name, ranker, pid_to_idx, embeddings)
     for variant_name, ranker in variant_runners
   ]
 
@@ -167,7 +219,10 @@ def run_ablation() -> None:
   output_dir.mkdir(parents=True, exist_ok=True)
   output_path = output_dir / "ablation_table.csv"
 
-  result_df = pd.DataFrame(rows, columns=["System", "P@5", "P@10", "MRR", "MAP"])
+  columns = ["System", "P@5", "P@10", "MRR", "MAP"]
+  if embeddings is not None:
+    columns.append("ILD@10")
+  result_df = pd.DataFrame(rows, columns=columns)
   result_df.to_csv(output_path, index=False)
   print(f"Wrote {output_path} with {len(result_df)} rows using {len(corpus_df)} corpus documents.")
 

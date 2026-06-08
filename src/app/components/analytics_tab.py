@@ -9,13 +9,15 @@ from __future__ import annotations
 
 import networkx as nx
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
 from graph.analytics import graph_summary, top_papers_by_citation
 
 
 def render(G: nx.DiGraph, result_df=None) -> None:
-    """Render publication-year histogram, graph summary and top-cited table."""
+    """Render publication-year histogram, graph summary, top-cited table,
+    and citation flow Sankey with bridge papers (B-A3)."""
     if G.number_of_nodes() == 0:
         st.info("No graph data available. Run a query to build the knowledge graph.")
         return
@@ -97,3 +99,57 @@ def render(G: nx.DiGraph, result_df=None) -> None:
         )
     else:
         st.caption("No citation data available.")
+
+    # ── Citation flow Sankey (B-A3) ───────────────────────────────────────
+    st.divider()
+    st.subheader("Citation Flow Over Time")
+
+    paper_nodes = [n for n, d in G.nodes(data=True) if d.get("node_type") == "paper"]
+
+    try:
+        import sys
+        from pathlib import Path
+
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "evaluation"))
+        from citation_flow import build_citation_flow, find_bridge_papers
+
+        flow = build_citation_flow(G, paper_nodes)
+
+        if not flow["labels"]:
+            st.info("Not enough intra-set citation links for flow analysis.")
+        else:
+            fig_sankey = go.Figure(
+                go.Sankey(
+                    node=dict(label=flow["labels"], pad=15, thickness=20),
+                    link=dict(
+                        source=flow["source"],
+                        target=flow["target"],
+                        value=flow["value"],
+                    ),
+                )
+            )
+            fig_sankey.update_layout(
+                title_text="Citation flow between publication years",
+                font_size=12,
+                margin=dict(t=40, b=10),
+            )
+            st.plotly_chart(fig_sankey, use_container_width=True)
+
+            bridge = find_bridge_papers(G, paper_nodes, top_n=5)
+            if bridge:
+                st.subheader("Bridge Papers")
+                st.caption("Papers with highest betweenness centrality in the citation subgraph.")
+                bridge_rows = []
+                for pid, score in bridge:
+                    attrs = G.nodes.get(pid, {})
+                    bridge_rows.append(
+                        {
+                            "Title": attrs.get("title", pid),
+                            "Year": attrs.get("year", "—"),
+                            "Centrality": round(score, 4),
+                        }
+                    )
+                st.dataframe(bridge_rows, hide_index=True, use_container_width=True)
+
+    except Exception as exc:
+        st.caption(f"Citation flow analysis unavailable: {exc}")
