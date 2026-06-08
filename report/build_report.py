@@ -442,24 +442,47 @@ def build():
     ))
 
     add_heading(doc, "5.4  Query Latency", level=2)
-    add_body(doc, "Table 5 shows per-stage latency on an NVIDIA RTX 3060 (after warm-up).")
+    add_body(doc, (
+        "Table 5 reports measured latency on the production machine (NVIDIA RTX 3060 12 GB, "
+        "Ryzen 7 7700, 64 GB DDR5, Samsung 990 Pro NVMe) after all indexes are loaded into "
+        "memory (warm path). Cold-start times are listed separately in Table 6."
+    ))
 
     make_table(doc,
-        ["Stage", "Latency (warm)"],
+        ["Stage", "Avg (ms)", "Min (ms)", "Max (ms)"],
         [
-            ["BM25 search (top-100)",             "~1 ms"],
-            ["SPECTER2 query encoding + FAISS",   "~9 ms"],
-            ["RRF fusion",                         "<1 ms"],
-            ["Cross-encoder reranker (50 pairs)", "~100 ms"],
-            ["Query expansion (WordNet + PRF)",   "~5 ms"],
-            ["Full pipeline (with reranker)",      "~115 ms"],
-            ["BERTopic transform (20 docs)",       "~50 ms"],
-            ["KG build (20 papers)",               "~5 ms"],
+            ["BM25 search (top-100)",              "2.3",    "0.4",   "9.7"],
+            ["SPECTER2 encode + FAISS (top-100)",  "2,296",  "33",    "7,692"],
+            ["RRF fusion (top-100+100 → top-50)",  "0.07",   "—",     "—"],
+            ["Cross-encoder reranker (50 pairs)",  "~100",   "—",     "—"],
+            ["Query expansion (WordNet + PRF)",    "~5",     "—",     "—"],
+            ["Full pipeline (expansion + rerank)", "117",    "—",     "—"],
+            ["BERTopic transform (20 docs)",       "999",    "—",     "—"],
+            ["Knowledge graph build (20 papers)",  "0.2",    "—",     "—"],
+            ["BibTeX export (20 papers)",          "0.02",   "—",     "—"],
+            ["CSV export (20 papers)",             "0.54",   "—",     "—"],
         ],
-        col_widths=[3.8, 2.2],
+        col_widths=[3.0, 1.2, 1.1, 1.1],
     )
-    add_caption(doc, "Table 5.  Per-stage query latency.  FAISS first-query includes model loading (~17 s); "
-                     "subsequent queries hit the cache.")
+    add_caption(doc, "Table 5.  Per-stage query latency (warm path, 5 queries averaged, RTX 3060).  "
+                     "FAISS variance is high because query encoding time dominates on short queries.")
+
+    doc.add_paragraph()
+    add_body(doc, "Table 6 shows cold-start artifact load times (first app launch from disk).")
+    make_table(doc,
+        ["Artifact", "Load time", "Disk size"],
+        [
+            ["corpus.parquet  (100k papers)",     "550 ms",   "123.3 MB"],
+            ["BM25 index",                         "6 ms",     "0.4 MB"],
+            ["FAISS vectors.index",                "976 ms",   "309.0 MB"],
+            ["embeddings.npy  (100k × 768 fp32)", "270 ms",   "307.2 MB"],
+            ["BERTopic model  (657 topics)",       "3,751 ms", "1,152.1 MB"],
+            ["paper_ids.json",                     "<5 ms",    "1.3 MB"],
+            ["Total on-disk footprint",            "—",        "~1,893 MB"],
+        ],
+        col_widths=[2.8, 1.3, 1.3],
+    )
+    add_caption(doc, "Table 6.  Cold-start artifact load times and disk sizes (NVMe SSD, RTX 3060 host).")
 
     add_heading(doc, "5.5  Comparison with the ISLE Paper", level=2)
     add_body(doc, (
