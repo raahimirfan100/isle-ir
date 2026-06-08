@@ -267,11 +267,13 @@ def _coherence_scores(
 
     if not nmf_topic_ids:
         raise ValueError(
-            "No NMF topics contained at least two vocabulary tokens for coherence scoring."
+            "No NMF topics contained at least two vocabulary "
+            "tokens for coherence scoring."
         )
     if not bertopic_topic_ids:
         raise ValueError(
-            "No BERTopic topics contained at least two vocabulary tokens for coherence scoring."
+            "No BERTopic topics contained at least two vocabulary "
+            "tokens for coherence scoring."
         )
 
     nmf_cv = float(
@@ -346,12 +348,20 @@ def compute_corpus_stats() -> None:
 
     sample_size = min(COHERENCE_SAMPLE_SIZE, len(df))
     coherence_docs = df["text"].sample(n=sample_size, random_state=42).tolist()
-    bertopic_model = _load_bertopic_model()
+    try:
+        bertopic_model = _load_bertopic_model()
+    except Exception as exc:  # pragma: no cover - runtime/download environment dependent
+        bertopic_model = None
+        print("BERTopic model not available; skipping BERTopic coherence.", exc)
 
-    nmf_cv, nmf_npmi, bertopic_cv, bertopic_npmi = _coherence_scores(
-        coherence_docs,
-        bertopic_model,
-    )
+    try:
+        nmf_cv, nmf_npmi, bertopic_cv, bertopic_npmi = _coherence_scores(
+            coherence_docs,
+            bertopic_model,
+        )
+    except Exception as exc:
+        print(f"Coherence scoring failed: {exc}")
+        nmf_cv = nmf_npmi = bertopic_cv = bertopic_npmi = float("nan")
 
     print(f"Corpus: {len(df)} papers | {token_count:,} tokens | {vocab_size:,} unique terms")
     print(f"Heaps' Law plot: {EVAL_RESULTS_DIR / 'heaps_law.png'}")
