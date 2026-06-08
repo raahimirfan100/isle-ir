@@ -48,6 +48,7 @@ def render(
 
     # -- 2D projection (BERTopic UMAP if available, else PCA) -------------
     coords_2d: np.ndarray | None = None
+    projection_name = "UMAP"
 
     try:
         from bertopic import BERTopic
@@ -71,6 +72,7 @@ def render(
 
     if coords_2d is None:
         # PCA fallback — no extra dependency
+        projection_name = "PCA"
         centered = subset_embs - subset_embs.mean(axis=0)
         _, _, vt = np.linalg.svd(centered, full_matrices=False)
         coords_2d = centered @ vt[:2].T
@@ -110,9 +112,12 @@ def render(
         color="topic",
         hover_data={"title": True, "year": True, "cited_by_count": True, "x": False, "y": False},
         title=f"2D semantic map — {n} papers",
-        labels={"x": "Dim 1", "y": "Dim 2"},
+        labels={"x": f"{projection_name} Dimension 1", "y": f"{projection_name} Dimension 2"},
     )
     fig.update_traces(marker_size=8)
     fig.update_layout(legend_title_text="Topic", margin=dict(t=40, b=10))
     st.plotly_chart(fig, use_container_width=True)
-    st.caption("Positions via BERTopic UMAP projection (or PCA fallback). Colours = topic cluster.")
+    st.caption(
+        f"Positions via {projection_name} projection of SPECTER2 embeddings. "
+        "Colours = topic cluster."
+    )

@@ -15,18 +15,25 @@ import networkx as nx
 
 
 def compute_paper_impact(G: nx.DiGraph) -> dict[str, int]:
-    """Citation in-degree per paper node (ISLE Eq. 19).
+    """Citation count per paper node (ISLE Eq. 19).
 
-    Only counts ``cites`` edges (intra-corpus citations).
+    Uses the ``cited_by_count`` node attribute (from OpenAlex) when available.
+    Falls back to intra-result ``cites`` in-degree when the attribute is absent
+    or zero.
     """
     impact: dict[str, int] = {}
     for node in G.nodes:
-        if G.nodes[node].get("node_type") != "paper":
+        attrs = G.nodes[node]
+        if attrs.get("node_type") != "paper":
             continue
-        cites_count = sum(
-            1 for _, _, d in G.in_edges(node, data=True) if d.get("rel") == "cites"
-        )
-        impact[node] = cites_count
+        corpus_count = attrs.get("cited_by_count", 0) or 0
+        if corpus_count > 0:
+            impact[node] = int(corpus_count)
+        else:
+            impact[node] = sum(
+                1 for _, _, d in G.in_edges(node, data=True)
+                if d.get("rel") == "cites"
+            )
     return impact
 
 

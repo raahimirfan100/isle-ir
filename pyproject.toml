@@ -48,6 +48,8 @@ dependencies = [
     "plotly>=6.7.0",
     # ── Evaluation ──────────────────────────────────────────────────────
     "gensim>=4.3",
+    "pymupdf>=1.27.2.3",
+    "python-docx>=1.2.0",
 ]
 
 # Hardware-specific extras — pick exactly ONE. They are mutually exclusive

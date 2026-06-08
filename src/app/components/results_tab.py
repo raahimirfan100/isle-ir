@@ -74,9 +74,11 @@ def render(
 
         # Gather fields (graceful defaults if a key is missing).
         title = paper.get("title", "Untitled")
-        authors = paper.get("authors", [])
+        _raw_a = paper.get("authors", [])
+        authors = list(_raw_a.tolist() if hasattr(_raw_a, "tolist") else _raw_a) or []
         year = paper.get("year", "")
-        categories = paper.get("categories", [])
+        _raw_c = paper.get("categories", [])
+        categories = list(_raw_c.tolist() if hasattr(_raw_c, "tolist") else _raw_c) or []
         abstract = paper.get("abstract", "")
         cited_by = paper.get("cited_by_count", 0)
 
@@ -110,7 +112,8 @@ def render(
             st.markdown(f"**RRF Score:** {score:.4f}")
             if display_abstract:
                 st.markdown(f"**Abstract:** {display_abstract}")
-            st.markdown(f"**Cited by:** {cited_by}")
+            cited_display = str(int(cited_by)) if cited_by else "—"
+            st.markdown(f"**Cited by:** {cited_display}")
 
         # -- Rocchio feedback buttons --------------------------------------
         rel_col, nrel_col = st.columns([1, 1])

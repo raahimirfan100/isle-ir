@@ -45,7 +45,7 @@ def render(G: nx.DiGraph, result_papers: list[dict]) -> None:
     )
     tmp.close()
     try:
-        export_pyvis(G, output=tmp.name, max_nodes=300)
+        export_pyvis(G, output_path=tmp.name, max_nodes=300)
         with open(tmp.name, encoding="utf-8") as f:
             st.components.v1.html(f.read(), height=700, scrolling=True)
     finally:

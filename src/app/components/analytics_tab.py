@@ -22,6 +22,40 @@ def render(G: nx.DiGraph, result_df=None) -> None:
         st.info("No graph data available. Run a query to build the knowledge graph.")
         return
 
+    # ── Query-level metrics (ILD@10, latency) ─────────────────────────
+    ild10 = st.session_state.get("ild10")
+    latency = st.session_state.get("latency_ms", {})
+    if ild10 is not None or latency:
+        with st.expander("Query metrics", expanded=True):
+            if ild10 is not None:
+                st.metric(
+                    "ILD@10",
+                    f"{ild10:.4f}",
+                    help=(
+                        "Intra-List Diversity at 10: mean pairwise cosine distance "
+                        "of the top-10 result embeddings in SPECTER2 space. "
+                        "Higher = more diverse results."
+                    ),
+                )
+            if latency:
+                rows = []
+                if latency.get("retrieval") is not None:
+                    rows.append({
+                        "Stage": "BM25 + FAISS + RRF + Rerank",
+                        "ms": f"{latency['retrieval']:.0f}",
+                    })
+                if latency.get("topics") is not None:
+                    rows.append({"Stage": "BERTopic transform", "ms": f"{latency['topics']:.0f}"})
+                if latency.get("graph") is not None:
+                    rows.append({"Stage": "Knowledge graph build", "ms": f"{latency['graph']:.0f}"})
+                if rows:
+                    total_ms = sum(
+                        float(r["ms"]) for r in rows
+                    )
+                    rows.append({"Stage": "Total", "ms": f"{total_ms:.0f}"})
+                    st.dataframe(rows, hide_index=True, use_container_width=True)
+        st.divider()
+
     summary = graph_summary(G)
 
     # ── Key metrics row ────────────────────────────────────────────────
@@ -81,6 +115,7 @@ def render(G: nx.DiGraph, result_df=None) -> None:
     # ── Top cited papers table ────────────────────────────────────────
     st.subheader("Top cited papers")
     top_papers = top_papers_by_citation(G, n=10)
+    top_papers = [(pid, attrs, c) for pid, attrs, c in top_papers if c > 0]
     if top_papers:
         rows = []
         for pid, attrs, citations in top_papers:

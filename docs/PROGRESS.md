@@ -4,7 +4,7 @@
 > session. It records *state*; the *plan* lives in `docs/SSOT.md`. Update the
 > phase table, the date, and the open items whenever state changes.
 
-**Last updated:** 2026-06-08 · **Stage:** Phases 0–6 done. Bonus features largely complete — MMR, Rocchio, freshness, citation paths, export, corpus stats all implemented.
+**Last updated:** 2026-06-08 · **Stage:** Phases 0–6 done. All bonus features complete — MMR, Rocchio, freshness, citation paths, export, UMAP scatter, topics-over-time, ILD metric, Sankey citation flow all implemented. Report generated (`report/ISLE-IR-Report.docx`).
 
 ## Phase status
 
@@ -66,8 +66,8 @@ only when its exit-criteria checklist is fully met.
 - [x] Abubakar: Phase 6 — relevance labels ✅ ablation.py ✅ corpus_stats.py ✅
 - [x] Raahim: MMR (B-R1) ✅ — `src/retrieval/mmr.py`, wired in main.py
 - [x] Abubakar: Rocchio (B-A1) ✅ — `src/retrieval/rocchio.py`, wired in main.py
-- [ ] Raahim: SPECTER2 vs MiniLM comparison study → report Section 8
-- [ ] Raahim: UMAP 2D scatter (B-R2) — stub exists, needs implementation
-- [ ] Raahim: Topics-over-time (B-R3) — not yet started
-- [ ] Abubakar: ILD metric in ablation (B-A2) — not yet started
-- [ ] Abubakar: Citation flow Sankey (B-A3) — not yet started
+- [x] Raahim: SPECTER2 vs MiniLM comparison study → report Section 8 ✅
+- [x] Raahim: UMAP 2D scatter (B-R2) ✅ — `src/app/components/embedding_viz_tab.py`, BERTopic UMAP with PCA fallback
+- [x] Raahim: Topics-over-time (B-R3) ✅ — implemented in `topics_tab.py` via `topic_model.topics_over_time()`
+- [x] Abubakar: ILD metric in ablation (B-A2) ✅ — `evaluation/ablation.py`, ILD@10 column in ablation table
+- [x] Abubakar: Citation flow Sankey (B-A3) ✅ — `evaluation/citation_flow.py` + `analytics_tab.py`
