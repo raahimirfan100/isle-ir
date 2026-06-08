@@ -122,9 +122,15 @@ def main() -> None:
             if idx is None:
                 continue
             df.at[idx, "cited_by_count"] = enrichment["cited_by_count"]
-            if not df.at[idx, "institutions"] or len(df.at[idx, "institutions"]) == 0:
+            existing_inst = df.at[idx, "institutions"]
+            if hasattr(existing_inst, "tolist"):
+                existing_inst = existing_inst.tolist()
+            if not existing_inst:
                 df.at[idx, "institutions"] = enrichment["institutions"]
-            if not df.at[idx, "countries"] or len(df.at[idx, "countries"]) == 0:
+            existing_ctr = df.at[idx, "countries"]
+            if hasattr(existing_ctr, "tolist"):
+                existing_ctr = existing_ctr.tolist()
+            if not existing_ctr:
                 df.at[idx, "countries"] = enrichment["countries"]
             updated += 1
         time.sleep(0.05)  # polite rate-limiting
