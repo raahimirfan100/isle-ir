@@ -27,10 +27,12 @@ def to_bibtex(results: list[dict]) -> str:
     for paper in results:
         pid = paper.get("arxiv_id", "unknown")
         title = paper.get("title", "").replace("{", "{{").replace("}", "}}")
-        authors = list(paper.get("authors", []) or [])
+        raw_authors = paper.get("authors", [])
+        authors = list(raw_authors.tolist() if hasattr(raw_authors, "tolist") else raw_authors) or []
         author_str = " and ".join(str(a) for a in authors) if authors else "Unknown"
         year = str(paper.get("year", ""))
-        categories = ", ".join(str(c) for c in (paper.get("categories", []) or []))
+        raw_cats = paper.get("categories", [])
+        categories = ", ".join(str(c) for c in (raw_cats.tolist() if hasattr(raw_cats, "tolist") else raw_cats) or [])
 
         entry = (
             f"@article{{{pid},\n"
@@ -58,8 +60,10 @@ def to_csv(results: list[dict]) -> bytes:
     columns = ["arxiv_id", "title", "authors", "year", "categories", "cited_by_count", "url"]
     rows = []
     for paper in results:
-        authors = "; ".join(str(a) for a in (paper.get("authors", []) or []))
-        categories = "; ".join(str(c) for c in (paper.get("categories", []) or []))
+        raw_a = paper.get("authors", [])
+        authors = "; ".join(str(a) for a in (raw_a.tolist() if hasattr(raw_a, "tolist") else raw_a) or [])
+        raw_c = paper.get("categories", [])
+        categories = "; ".join(str(c) for c in (raw_c.tolist() if hasattr(raw_c, "tolist") else raw_c) or [])
         rows.append(
             {
                 "arxiv_id": paper.get("arxiv_id", ""),
