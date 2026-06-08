@@ -27,10 +27,10 @@ def to_bibtex(results: list[dict]) -> str:
     for paper in results:
         pid = paper.get("arxiv_id", "unknown")
         title = paper.get("title", "").replace("{", "{{").replace("}", "}}")
-        authors = paper.get("authors", [])
-        author_str = " and ".join(authors) if authors else "Unknown"
+        authors = list(paper.get("authors", []) or [])
+        author_str = " and ".join(str(a) for a in authors) if authors else "Unknown"
         year = str(paper.get("year", ""))
-        categories = ", ".join(paper.get("categories", []))
+        categories = ", ".join(str(c) for c in (paper.get("categories", []) or []))
 
         entry = (
             f"@article{{{pid},\n"
@@ -58,8 +58,8 @@ def to_csv(results: list[dict]) -> bytes:
     columns = ["arxiv_id", "title", "authors", "year", "categories", "cited_by_count", "url"]
     rows = []
     for paper in results:
-        authors = "; ".join(paper.get("authors", []))
-        categories = "; ".join(paper.get("categories", []))
+        authors = "; ".join(str(a) for a in (paper.get("authors", []) or []))
+        categories = "; ".join(str(c) for c in (paper.get("categories", []) or []))
         rows.append(
             {
                 "arxiv_id": paper.get("arxiv_id", ""),
