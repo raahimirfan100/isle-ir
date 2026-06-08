@@ -140,7 +140,8 @@ with st.spinner("Loading indexes and corpus…"):
     all_embeddings = load_embeddings()
 
 papers_lookup = cast(
-    dict[str, dict], corpus_df.set_index("arxiv_id").to_dict("index")
+    dict[str, dict],
+    {r["arxiv_id"]: r for r in corpus_df.to_dict("records")},
 )
 paper_ids_ordered: list[str] = corpus_df["arxiv_id"].tolist()
 
