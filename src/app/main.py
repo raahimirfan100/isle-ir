@@ -403,10 +403,18 @@ else:
         )
 
     with tab_topics:
+        _topic_model = load_bertopic_model()
+        _result_papers_t = st.session_state["result_papers"]
+        _docs_t = [
+            p.get("text", f"{p.get('title', '')} {p.get('abstract', '')}")
+            for p in _result_papers_t
+        ]
         render_topics(
             st.session_state["topic_info"],
             st.session_state["doc_topics"],
-            st.session_state["result_papers"],
+            _result_papers_t,
+            topic_model=_topic_model,
+            docs=_docs_t,
         )
 
     with tab_graph:
