@@ -171,8 +171,10 @@ with st.sidebar:
     st.divider()
     st.header("Rocchio Feedback")
     st.caption("Mark results relevant / not relevant, then refine.")
-    if st.button("🔄 Refine Search", disabled="results" not in st.session_state):
-        st.info("Run a search first, then thumbs-up/down results.")
+    refine_btn = st.button(
+        "🔄 Refine Search",
+        disabled="query_emb" not in st.session_state,
+    )
 
     run_btn = st.button("🔍 Search", type="primary", use_container_width=True)
 
@@ -329,6 +331,35 @@ if run_btn and query.strip():
         st.session_state["G"] = G
         st.session_state["collab_G"] = collab_G
         st.session_state["query"] = query
+
+# ── Rocchio refinement (B-A1) ─────────────────────────────────────────────
+
+if refine_btn and "query_emb" in st.session_state:
+    rel_ids = st.session_state.get("rel_ids", [])
+    nrel_ids = st.session_state.get("nrel_ids", [])
+    if not rel_ids and not nrel_ids:
+        st.sidebar.warning("Mark at least one result 👍 or 👎 first.")
+    else:
+        with st.spinner("Refining with Rocchio feedback…"):
+            from retrieval.rocchio import rocchio as apply_rocchio
+
+            pid_to_idx_r = {pid: i for i, pid in enumerate(paper_ids_ordered)}
+            embs = load_embeddings()
+            rel_embs = [embs[pid_to_idx_r[p]] for p in rel_ids if p in pid_to_idx_r]
+            nrel_embs = [embs[pid_to_idx_r[p]] for p in nrel_ids if p in pid_to_idx_r]
+            new_q_emb = apply_rocchio(
+                st.session_state["query_emb"], rel_embs, nrel_embs
+            )
+            refined = faiss_index.search_by_embedding(new_q_emb, top_k=20)
+            result_ids_r = [pid for pid, _ in refined]
+            result_papers_r = [papers_lookup[p] for p in result_ids_r if p in papers_lookup]
+            result_df_r = corpus_df[corpus_df["arxiv_id"].isin(result_ids_r)].copy()
+            result_df_r["_score"] = result_df_r["arxiv_id"].map(dict(refined))
+            st.session_state["results"] = refined
+            st.session_state["result_papers"] = result_papers_r
+            st.session_state["result_df"] = result_df_r
+            st.session_state["query_emb"] = new_q_emb
+            st.rerun()
 
 # ── Tab rendering ───────────────────────────────────────────────────────────
 
