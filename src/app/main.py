@@ -210,6 +210,23 @@ if run_btn and query.strip():
                 decay_rates, lam=freshness_lam,
             )
 
+        # MMR diversity re-ranking (B-R1)
+        if use_mmr and results:
+            from retrieval.mmr import mmr as apply_mmr
+
+            embs = load_embeddings()
+            query_vec = faiss_index._encode_query(query)
+            candidates_with_embs = [
+                (pid, score, embs[pid_to_idx[pid]])
+                for pid, score in results
+                if pid in pid_to_idx
+            ]
+            if candidates_with_embs:
+                results = apply_mmr(query_vec[0], candidates_with_embs, lam=mmr_lam)
+
+        # Store query embedding for Rocchio refinement
+        st.session_state["query_emb"] = faiss_index._encode_query(query)[0]
+
         # Build papers list for downstream tabs
         result_ids = [pid for pid, _ in results]
         result_papers = [
