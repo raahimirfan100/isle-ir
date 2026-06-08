@@ -107,11 +107,20 @@ def _render_collab_tab(collab_G) -> None:
 
 
 def _render_semantic_map_tab() -> None:
-    """Stub for Raahim's B-R2 UMAP 2D embedding visualization."""
-    st.subheader("Semantic Map")
-    st.info(
-        "This tab will display a 2D UMAP projection of "
-        "retrieved papers, coloured by topic cluster. Coming soon."
+    """Semantic Map — 2D UMAP projection of retrieved papers (B-R2)."""
+    if "results" not in st.session_state:
+        st.info("Run a search first to see the semantic map.")
+        return
+    from app.components.embedding_viz_tab import render as render_embedding
+
+    pid_to_idx_sem = {pid: i for i, pid in enumerate(paper_ids_ordered)}
+    render_embedding(
+        [pid for pid, _ in st.session_state["results"]],
+        st.session_state.get("doc_topics", []),
+        all_embeddings,
+        pid_to_idx_sem,
+        st.session_state.get("topic_info", []),
+        papers_lookup,
     )
 
 
@@ -394,10 +403,18 @@ else:
         )
 
     with tab_topics:
+        _topic_model = load_bertopic_model()
+        _result_papers_t = st.session_state["result_papers"]
+        _docs_t = [
+            p.get("text", f"{p.get('title', '')} {p.get('abstract', '')}")
+            for p in _result_papers_t
+        ]
         render_topics(
             st.session_state["topic_info"],
             st.session_state["doc_topics"],
-            st.session_state["result_papers"],
+            _result_papers_t,
+            topic_model=_topic_model,
+            docs=_docs_t,
         )
 
     with tab_graph:

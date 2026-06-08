@@ -13,8 +13,15 @@ import plotly.express as px
 import streamlit as st
 
 
-def render(topic_info: list[dict], doc_topics: list[int], result_papers: list[dict]) -> None:
-    """Render the topic distribution (pie chart) and per-topic keyword details.
+def render(
+    topic_info: list[dict],
+    doc_topics: list[int],
+    result_papers: list[dict],
+    topic_model=None,
+    docs: list[str] | None = None,
+) -> None:
+    """Render the topic distribution (pie chart), per-topic keyword details,
+    and (when available) a topics-over-time line chart (B-R3).
 
     Parameters
     ----------
@@ -26,6 +33,11 @@ def render(topic_info: list[dict], doc_topics: list[int], result_papers: list[di
     result_papers:
         Paper dicts returned by the retrieval pipeline, each containing
         ``title`` and ``year`` at minimum.
+    topic_model:
+        Fitted BERTopic model (optional). Required for topics-over-time chart.
+    docs:
+        Raw text for each paper in *result_papers* (parallel list). Required
+        for topics-over-time chart.
     """
     # -- Header -----------------------------------------------------------
     if not topic_info:
@@ -76,3 +88,22 @@ def render(topic_info: list[dict], doc_topics: list[int], result_papers: list[di
                     st.markdown(f"- {title}" + (f" ({year})" if year else ""))
             else:
                 st.caption("No papers assigned to this topic in the current results.")
+
+    # -- Topics over time (B-R3) ─────────────────────────────────────────
+    if topic_model is None or docs is None:
+        return
+
+    timestamps = [str(p.get("year", "")) for p in result_papers]
+    distinct_years = {t for t in timestamps if t and t != "None"}
+    if len(distinct_years) < 3:
+        st.subheader("Topic Trends Over Time")
+        st.info("Not enough year diversity in this result set for temporal analysis.")
+        return
+
+    try:
+        st.subheader("Topic Trends Over Time")
+        tot = topic_model.topics_over_time(docs, timestamps, nr_bins=6, global_tuning=True)
+        fig = topic_model.visualize_topics_over_time(tot, top_n_topics=8)
+        st.plotly_chart(fig, use_container_width=True)
+    except Exception as exc:
+        st.caption(f"Topics-over-time chart unavailable: {exc}")
