@@ -12,8 +12,8 @@ Week 4 (Heaps' / Zipf's law).
 from __future__ import annotations
 
 import math
-import subprocess
 import shutil
+import subprocess
 from collections import Counter
 from pathlib import Path
 
@@ -24,9 +24,8 @@ from gensim.models.coherencemodel import CoherenceModel
 from PIL import Image, ImageDraw, ImageFont
 
 from app.config import BERTOPIC_DIR, CORPUS_PATH, EVAL_RESULTS_DIR
-from topics.nmf_model import run_nmf
 from topics.bertopic_model import _get_topic_info
-
+from topics.nmf_model import run_nmf
 
 HEAPS_SAMPLE_INTERVAL = 5_000
 COHERENCE_SAMPLE_SIZE = 1_000
@@ -241,7 +240,9 @@ def _build_zipf_points(df: pd.DataFrame) -> tuple[list[tuple[float, float]], int
     return points, len(freq)
 
 
-def _coherence_scores(docs: list[str], bertopic_model: BERTopic) -> tuple[float, float, float, float]:
+def _coherence_scores(
+    docs: list[str], bertopic_model: BERTopic
+) -> tuple[float, float, float, float]:
     tokenized_docs = [_tokenize(doc) for doc in docs]
     dictionary = Dictionary(tokenized_docs)
 
@@ -265,9 +266,15 @@ def _coherence_scores(docs: list[str], bertopic_model: BERTopic) -> tuple[float,
     bertopic_topic_ids = _topic_keyword_ids(bertopic_keywords, dictionary)
 
     if not nmf_topic_ids:
-        raise ValueError("No NMF topics contained at least two vocabulary tokens for coherence scoring.")
+        raise ValueError(
+            "No NMF topics contained at least two vocabulary "
+            "tokens for coherence scoring."
+        )
     if not bertopic_topic_ids:
-        raise ValueError("No BERTopic topics contained at least two vocabulary tokens for coherence scoring.")
+        raise ValueError(
+            "No BERTopic topics contained at least two vocabulary "
+            "tokens for coherence scoring."
+        )
 
     nmf_cv = float(
         CoherenceModel(
@@ -341,12 +348,20 @@ def compute_corpus_stats() -> None:
 
     sample_size = min(COHERENCE_SAMPLE_SIZE, len(df))
     coherence_docs = df["text"].sample(n=sample_size, random_state=42).tolist()
-    bertopic_model = _load_bertopic_model()
+    try:
+        bertopic_model = _load_bertopic_model()
+    except Exception as exc:  # pragma: no cover - runtime/download environment dependent
+        bertopic_model = None
+        print("BERTopic model not available; skipping BERTopic coherence.", exc)
 
-    nmf_cv, nmf_npmi, bertopic_cv, bertopic_npmi = _coherence_scores(
-        coherence_docs,
-        bertopic_model,
-    )
+    try:
+        nmf_cv, nmf_npmi, bertopic_cv, bertopic_npmi = _coherence_scores(
+            coherence_docs,
+            bertopic_model,
+        )
+    except Exception as exc:
+        print(f"Coherence scoring failed: {exc}")
+        nmf_cv = nmf_npmi = bertopic_cv = bertopic_npmi = float("nan")
 
     print(f"Corpus: {len(df)} papers | {token_count:,} tokens | {vocab_size:,} unique terms")
     print(f"Heaps' Law plot: {EVAL_RESULTS_DIR / 'heaps_law.png'}")
