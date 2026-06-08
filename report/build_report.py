@@ -484,6 +484,30 @@ def build():
     )
     add_caption(doc, "Table 6.  Cold-start artifact load times and disk sizes (NVMe SSD, RTX 3060 host).")
 
+    doc.add_paragraph()
+    add_body(doc, (
+        "Table 7 reports one-time training and index-build times recorded in the original "
+        "run logs and GitHub release notes. These are offline processes that run once; "
+        "the resulting artifacts are persisted to disk and loaded at startup."
+    ))
+    make_table(doc,
+        ["Offline Process", "Duration", "Hardware", "Source"],
+        [
+            ["arXiv corpus ingestion (100k papers)",        "~3 min",   "CPU",          "data-v2 release"],
+            ["OpenAlex enrichment (16k DOIs)",              "32 s",     "CPU + network","data-v2 release"],
+            ["SPECTER2 encoding (100k × 768-dim)",          "~9.5 min", "RTX 3060",     "faiss-index release"],
+            ["FAISS IVFFlat index build",                   "<1 min",   "RTX 3060",     "faiss-index release"],
+            ["BERTopic UMAP (n_components=5, cosine)",      "59 s",     "CPU",          "fit_log.txt"],
+            ["BERTopic HDBSCAN clustering",                 "4 s",      "CPU",          "fit_log.txt"],
+            ["BERTopic c-TF-IDF + topic reduction",        "27 s",     "CPU",          "fit_log.txt"],
+            ["BERTopic coherence scoring (gensim C_V)",     "~90 s",    "CPU × 7 cores","fit_log.txt"],
+            ["Total BERTopic training (on precomputed embs)","~3 min",  "CPU",          "fit_log.txt"],
+        ],
+        col_widths=[2.7, 1.0, 1.2, 1.5],
+    )
+    add_caption(doc, "Table 7.  One-time offline training and index-build times.  "
+                     "All artifacts are persisted; reproduction requires only loading from disk.")
+
     add_heading(doc, "5.5  Comparison with the ISLE Paper", level=2)
     add_body(doc, (
         "The ISLE reference paper (arXiv:2512.12760) is a system/architecture paper "
