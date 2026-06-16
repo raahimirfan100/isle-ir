@@ -331,7 +331,7 @@ python-dateutil==2.9.0.post0
     # via pandas
 python-dotenv==1.2.2
     # via pydantic-settings
-python-multipart==0.0.28
+python-multipart==0.0.31
     # via
     #   mcp
     #   streamlit
