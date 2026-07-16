@@ -156,7 +156,7 @@ markupsafe==3.0.3
     # via jinja2
 matplotlib-inline==0.2.2
     # via ipython
-mcp==1.27.1
+mcp==1.28.1
     # via bm25s
 mdurl==0.1.2
     # via markdown-it-py
