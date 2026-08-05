@@ -58,7 +58,7 @@ colorama==0.4.6 ; sys_platform == 'win32'
     #   click
     #   ipython
     #   tqdm
-cryptography==48.0.0
+cryptography==50.0.0
     # via pyjwt
 decorator==5.2.1
     # via ipython
