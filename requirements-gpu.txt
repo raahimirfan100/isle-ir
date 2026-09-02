@@ -449,7 +449,7 @@ traitlets==5.15.0
     # via
     #   ipython
     #   matplotlib-inline
-transformers==4.57.6
+transformers==5.10.1
     # via
     #   adapters
     #   sentence-transformers
