@@ -68,7 +68,7 @@ faiss-cpu==1.13.2
     # via isle-ir
 feedparser==6.0.12
     # via arxiv
-filelock==3.29.0
+filelock==4.2.1
     # via
     #   huggingface-hub
     #   torch
